@@ -45,6 +45,11 @@ namespace Plugins.Warehouser.Editor
             SerializedProperty packages = so.FindProperty("setting.packages");
             EditorGUILayout.PropertyField(packages, true);
 
+            if (GUILayout.Button("Clear"))
+            {
+                Packager.Clear(setting.packages);
+            }
+
             if (GUILayout.Button("Pack"))
             {
                 Packager.Pack(setting.packages);
@@ -66,7 +71,12 @@ namespace Plugins.Warehouser.Editor
 
             EditorGUILayout.Space();
 
-            GUILayout.Label("Asset Bundle", EditorStyles.boldLabel);
+            GUILayout.Label("Asset Bundles", EditorStyles.boldLabel);
+
+            if (GUILayout.Button("Build"))
+            {
+                Build();
+            }
 
             if (GUI.changed)
             {
@@ -106,6 +116,26 @@ namespace Plugins.Warehouser.Editor
                 fileStream.Close();
             }
             File.WriteAllText(Constants.SETTING_PATH, json);
+            AssetDatabase.Refresh();
+        }
+
+        /// <summary>
+        /// 构建AssetBundle
+        /// </summary>
+        private void Build()
+        {
+            BuildTarget platform = BuildTarget.iOS;
+#if UNITY_ANDROID
+            platform = BuildTarget.Android;
+#elif UNITY_IPHONE
+            platform = BuildTarget.iOS;
+#elif UNITY_STANDALONE_WIN
+            platform = BuildTarget.StandaloneWindows;
+#endif
+            if (!Directory.Exists(Application.streamingAssetsPath))
+                Directory.CreateDirectory(Application.streamingAssetsPath);
+
+            BuildPipeline.BuildAssetBundles(Application.streamingAssetsPath, BuildAssetBundleOptions.None, platform);
             AssetDatabase.Refresh();
         }
 

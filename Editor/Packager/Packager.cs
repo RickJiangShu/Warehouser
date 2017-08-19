@@ -44,6 +44,42 @@ namespace Plugins.Warehouser.Editor
         }
 
         /// <summary>
+        /// 清理掉非Package指定的Asset Bundle
+        /// </summary>
+        public static void Clear(List<Package> packages)
+        {
+            string[] bundleNames = AssetDatabase.GetAllAssetBundleNames();
+            for (int i = 0, length = bundleNames.Length; i < length; i++)
+            {
+                string bundleName = bundleNames[i];
+                bool inPackage = false;
+                foreach (Package package in packages)
+                {
+                    if (!IsPrefix(package.name))
+                    {
+                        inPackage = bundleName == package.name;
+                    }
+                    else
+                    {
+                        inPackage = bundleName.StartsWith(package.name);
+                    }
+
+                    if (inPackage)
+                        break;
+                }
+
+                //如果不包含在包中
+                if (!inPackage)
+                {
+                    AssetDatabase.RemoveAssetBundleName(bundleName, true);
+                }
+            }
+
+            AssetDatabase.RemoveUnusedAssetBundleNames();
+            AssetDatabase.Refresh();
+        }
+
+        /// <summary>
         /// 打包整个文件夹
         /// </summary>
         /// <param name="path"></param>
