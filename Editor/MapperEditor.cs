@@ -21,19 +21,27 @@ namespace Plugins.Warehouser
         /// </summary>
         private static readonly string[] IGNORE_EXTENSIONS = new string[1] { ".meta" };
 
-        public static void MapPaths(string pathPairsPath)
+        public static void MapPaths(string[] mapPaths, string pathPairsOutput)
         {
-            //映射Resource
-            List<PathPair> pairsOfResources = GetPairsOfResources();
-
-            //映射AssetBundle
-            List<PathPair> pairsOfAssetBundles = GetPairsOfAssetBundles();
-
-            //所有对
+            //定义所有Pairs
             List<PathPair> allPairs = new List<PathPair>();
-            allPairs.AddRange(pairsOfResources);
-            allPairs.AddRange(pairsOfAssetBundles);
 
+            //遍历需要映射的路径
+            foreach (string path in mapPaths)
+            {
+                FileAttributes attr = File.GetAttributes(path);
+                if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                {
+                    List<PathPair> pairs = GetPairsByDirectoryPath(path);
+                    allPairs.AddRange(pairs);
+                }
+                else
+                {
+                    PathPair pair = GetPairByFilePath(path);
+                    if (pair != null)
+                        allPairs.Add(pair);
+                }
+            }
 
             //检查是否有重名
             Dictionary<string, int> recordCount = new Dictionary<string, int>();
@@ -69,88 +77,118 @@ namespace Plugins.Warehouser
             pathMap.pairs = allPairs.ToArray();
 
             //创建PathMap
-            if (File.Exists(pathPairsPath))
+            if (File.Exists(pathPairsOutput))
             {
-                UnityEngine.Object old = AssetDatabase.LoadMainAssetAtPath(pathPairsPath);
+                UnityEngine.Object old = AssetDatabase.LoadMainAssetAtPath(pathPairsOutput);
                 EditorUtility.CopySerialized(pathMap, old);
             }
             else
-                AssetDatabase.CreateAsset(pathMap, pathPairsPath);
+                AssetDatabase.CreateAsset(pathMap, pathPairsOutput);
         }
 
         /// <summary>
         /// 是否忽略
         /// </summary>
-        /// <param name="fileName"></param>
+        /// <param name="extension"></param>
         /// <returns></returns>
-        private static bool IsIgnore(string fileName)
+        private static bool IsIgnore(string extension)
         {
             for (int i = 0, j = IGNORE_EXTENSIONS.Length; i < j; i++)
             {
-                if (IGNORE_EXTENSIONS[i] == Path.GetExtension(fileName))
+                if (IGNORE_EXTENSIONS[i] == extension)
                     return true;
             }
-
-            if (fileName == Path.GetFileName(WarehouserSetting.PATH))
-                return true;
-
-            if (fileName == WarehouserSetting.PATH_PAIRS_NAME)
-                return true;
-
             return false;
         }
 
         /// <summary>
-        /// 获取Resources目录下所有的路径对
+        /// 通过目录获取其中的路径对
         /// </summary>
         /// <returns></returns>
-        private static List<PathPair> GetPairsOfResources()
+        private static List<PathPair> GetPairsByDirectoryPath(string path)
         {
             List<PathPair> pairs = new List<PathPair>();
-
-            DirectoryInfo resourceDir = new DirectoryInfo(Application.dataPath + Path.DirectorySeparatorChar + "Resources");
-            if (resourceDir.Exists)
+            if (Directory.Exists(path))
             {
-                FileInfo[] filesInResources = resourceDir.GetFiles("*.*", SearchOption.AllDirectories);
-                foreach (FileInfo file in filesInResources)
+                bool inResources = WarehouserUtils.InResources(path);
+                DirectoryInfo directory = new DirectoryInfo(path);
+                FileInfo[] files = directory.GetFiles("*.*", SearchOption.AllDirectories);
+                foreach (FileInfo file in files)
                 {
-                    if (IsIgnore(file.Name))
+                    if (IsIgnore(file.Extension))
                         continue;
 
-                    string name = file.Name.Replace(file.Extension, "");
-                    string path = WarehouserUtils.Convert2ResourcesPath(file.FullName);
-                    pairs.Add(new PathPair(name, path));
+                    PathPair pair;
+                    if (inResources)
+                    {
+                        pairs.Add(GetPairByResourceFile(file));
+                    }
+                    else
+                    {
+                        pair = GetPairByAssetBundleFile(file);
+                        if(pair != null)
+                            pairs.Add(pair);
+                    }
                 }
             }
             return pairs;
         }
 
         /// <summary>
-        /// 获取所有AssetBundle的路径对
+        /// 通过文件路径获取路径对
         /// </summary>
+        /// <param name="path"></param>
         /// <returns></returns>
-        private static List<PathPair> GetPairsOfAssetBundles()
+        private static PathPair GetPairByFilePath(string path)
         {
-            List<PathPair> pairs = new List<PathPair>();
-
-            DirectoryInfo assetDir = new DirectoryInfo(Application.dataPath);
-            FileInfo[] allFiles = assetDir.GetFiles("*.*", SearchOption.AllDirectories);
-            foreach (FileInfo file in allFiles)
+            if (File.Exists(path))
             {
-                if (IsIgnore(file.Name))
-                    continue;
+                FileInfo file = new FileInfo(path);
+                if (IsIgnore(path))
+                    return null;
 
-                string assetPath = WarehouserUtils.FullName2AssetPath(file.FullName);
-                AssetImporter importer = AssetImporter.GetAtPath(assetPath);
-                if (importer == null || string.IsNullOrEmpty(importer.assetBundleName))
-                    continue;
-
-                string name = Path.GetFileNameWithoutExtension(file.Name);
-                string path = importer.assetBundleName;
-                pairs.Add(new PathPair(name, path));
+                bool inResources = WarehouserUtils.InResources(path);
+                PathPair pair;
+                if (inResources)
+                {
+                    pair = GetPairByResourceFile(file);
+                }
+                else
+                {
+                    pair = GetPairByAssetBundleFile(file);
+                }
+                return pair;
             }
+            return null;
+        }
 
-            return pairs;
+        /// <summary>
+        /// 通过Reousrce文件获取路径对
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        private static PathPair GetPairByResourceFile(FileInfo file)
+        {
+            string name = file.Name.Replace(file.Extension, "");
+            string path = WarehouserUtils.Convert2ResourcesPath(file.FullName);
+            return new PathPair(name, path);
+        }
+
+        /// <summary>
+        /// 从AssetBundle文件得出路径对
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        private static PathPair GetPairByAssetBundleFile(FileInfo file)
+        {
+            string assetPath = WarehouserUtils.FullName2AssetPath(file.FullName);
+            AssetImporter importer = AssetImporter.GetAtPath(assetPath);
+            if (importer == null || string.IsNullOrEmpty(importer.assetBundleName))
+                return null;
+
+            string name = Path.GetFileNameWithoutExtension(file.Name);
+            string path = importer.assetBundleName;
+            return new PathPair(name, path);
         }
     }
 }

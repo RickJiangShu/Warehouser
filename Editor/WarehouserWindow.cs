@@ -21,7 +21,7 @@ namespace Plugins.Warehouser
         /// <summary>
         /// 配置文件
         /// </summary>
-        private static WarehouserSetting setting;
+        public WarehouserSetting setting;
 
         [MenuItem("Window/Warehouser")]
         public static WarehouserWindow Get()
@@ -39,14 +39,22 @@ namespace Plugins.Warehouser
             //Base Settings
             GUILayout.Label("Base Settings", EditorStyles.boldLabel);
 
-            setting.pathPairsDirectory = EditorGUILayout.TextField("PathPairs Directory", setting.pathPairsDirectory);
+
+            //显示Map Paths
+            SerializedObject so = new SerializedObject(this);
+            SerializedProperty mapPathsProp = so.FindProperty("setting.mapPaths");
+            EditorGUILayout.PropertyField(mapPathsProp, true);
+            so.ApplyModifiedProperties();
+
+
+            setting.pathPairsOutput = EditorGUILayout.TextField("PathPairs Output", setting.pathPairsOutput);
             //
             //Opertions
             GUILayout.Label("Opertions", EditorStyles.boldLabel);
 
             if (GUILayout.Button("Map Paths"))
             {
-                MapperEditor.MapPaths(setting.pathPairsPath);
+                MapperEditor.MapPaths(null,setting.pathPairsPath);
             }
 
             if (GUI.changed)
@@ -59,7 +67,7 @@ namespace Plugins.Warehouser
         /// <summary>
         /// 加载Setting
         /// </summary>
-        private static void LoadSetting()
+        private void LoadSetting()
         {
             if (File.Exists(WarehouserSetting.PATH))
             {
@@ -76,7 +84,7 @@ namespace Plugins.Warehouser
         /// <summary>
         /// 保存Setting
         /// </summary>
-        private static void SaveSetting()
+        private void SaveSetting()
         {
             string json = JsonUtility.ToJson(setting, true);
             FileStream fileStream;
