@@ -23,6 +23,11 @@ namespace Plugins.Warehouser.Editor
         /// </summary>
         public Setting setting;
 
+        /// <summary>
+        /// 滚动条坐标
+        /// </summary>
+        private Vector2 scrollPos;
+
         [MenuItem("Window/Warehouser")]
         public static WarehouserWindow Get()
         {
@@ -37,6 +42,9 @@ namespace Plugins.Warehouser.Editor
         public void OnGUI()
         {
             SerializedObject so = new SerializedObject(this);
+
+            EditorGUILayout.BeginVertical();
+            scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 
             //Packager
             GUILayout.Label("Packager", EditorStyles.boldLabel);
@@ -73,10 +81,20 @@ namespace Plugins.Warehouser.Editor
 
             GUILayout.Label("Asset Bundles", EditorStyles.boldLabel);
 
+            /*
+            if(GUILayout.Button("Remove Unused Bundles"))
+            {
+
+            }
+             */
+
             if (GUILayout.Button("Build"))
             {
                 Build();
             }
+
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.EndScrollView();
 
             if (GUI.changed)
             {

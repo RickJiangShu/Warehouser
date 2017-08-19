@@ -15,7 +15,10 @@ public class Mapper
 {
     private static Dictionary<string, string> mapOfPath;
 
-
+    /// <summary>
+    /// 初始化键值对
+    /// </summary>
+    /// <param name="pairs"></param>
     public static void Initialize(PathPairs pairs)
     {
         mapOfPath = new Dictionary<string,string>();

@@ -101,7 +101,8 @@ namespace Plugins.Warehouser.Editor
                     }
                     else
                     {
-                        string relativePath = file.FullName.Substring(directory.FullName.Length);
+                  //      string fullDirectoryPath = directory.FullName.
+                        string relativePath = file.FullName.Substring(directory.FullName.Length + 1);
                         string bundleName = name + relativePath;
                         bundleName = Path.ChangeExtension(bundleName, EXTENSION);
                         PackFile(file, bundleName);
@@ -138,9 +139,6 @@ namespace Plugins.Warehouser.Editor
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
             if (importer == null)
                 return;
-
-            if (!Path.HasExtension(name))
-                name = Path.ChangeExtension(name, EXTENSION);
 
             importer.assetBundleName = name;
         }
