@@ -11,7 +11,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Text;
 
-namespace Plugins.Warehouser
+namespace Plugins.Warehouser.Editor
 {
     /// <summary>
     /// 映射器编辑器
@@ -21,7 +21,7 @@ namespace Plugins.Warehouser
         /// <summary>
         /// 配置文件
         /// </summary>
-        public WarehouserSetting setting;
+        public Setting setting;
 
         [MenuItem("Window/Warehouser")]
         public static WarehouserWindow Get()
@@ -36,29 +36,41 @@ namespace Plugins.Warehouser
 
         public void OnGUI()
         {
-            //Base Settings
-            GUILayout.Label("Base Settings", EditorStyles.boldLabel);
-
-
-            //显示Map Paths
             SerializedObject so = new SerializedObject(this);
+
+            //Packager
+            GUILayout.Label("Packager", EditorStyles.boldLabel);
+
+            //显示Package
+            SerializedProperty packages = so.FindProperty("setting.packages");
+            EditorGUILayout.PropertyField(packages, true);
+
+            if (GUILayout.Button("Pack"))
+            {
+                Packager.Pack(setting.packages);
+            }
+
+            EditorGUILayout.Space();
+
+            //Mapper
+            GUILayout.Label("Mapper", EditorStyles.boldLabel);
+
+            //显示MapPaths
             SerializedProperty mapPathsProp = so.FindProperty("setting.mapPaths");
             EditorGUILayout.PropertyField(mapPathsProp, true);
-            so.ApplyModifiedProperties();
-
-
-            setting.pathPairsOutput = EditorGUILayout.TextField("PathPairs Output", setting.pathPairsOutput);
-            //
-            //Opertions
-            GUILayout.Label("Opertions", EditorStyles.boldLabel);
-
-            if (GUILayout.Button("Map Paths"))
+            
+            if (GUILayout.Button("Map"))
             {
-                MapperEditor.MapPaths(null,setting.pathPairsPath);
+                MapperEditor.Map(setting.mapPaths.ToArray(), Constants.PATH_PAIRS_PATH);
             }
+
+            EditorGUILayout.Space();
+
+            GUILayout.Label("Asset Bundle", EditorStyles.boldLabel);
 
             if (GUI.changed)
             {
+                so.ApplyModifiedProperties();
                 SaveSetting();
             }
         }
@@ -69,14 +81,14 @@ namespace Plugins.Warehouser
         /// </summary>
         private void LoadSetting()
         {
-            if (File.Exists(WarehouserSetting.PATH))
+            if (File.Exists(Constants.SETTING_PATH))
             {
-                string content = File.ReadAllText(WarehouserSetting.PATH);
-                setting = JsonUtility.FromJson<WarehouserSetting>(content);
+                string content = File.ReadAllText(Constants.SETTING_PATH);
+                setting = JsonUtility.FromJson<Setting>(content);
             }
             else
             {
-                setting = new WarehouserSetting();
+                setting = new Setting();
                 SaveSetting();
             }
         }
@@ -88,12 +100,12 @@ namespace Plugins.Warehouser
         {
             string json = JsonUtility.ToJson(setting, true);
             FileStream fileStream;
-            if (!File.Exists(WarehouserSetting.PATH))
+            if (!File.Exists(Constants.SETTING_PATH))
             {
-                fileStream = File.Create(WarehouserSetting.PATH);
+                fileStream = File.Create(Constants.SETTING_PATH);
                 fileStream.Close();
             }
-            File.WriteAllText(WarehouserSetting.PATH, json);
+            File.WriteAllText(Constants.SETTING_PATH, json);
             AssetDatabase.Refresh();
         }
 

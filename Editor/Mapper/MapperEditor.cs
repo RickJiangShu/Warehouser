@@ -9,10 +9,10 @@ using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
 
-namespace Plugins.Warehouser
+namespace Plugins.Warehouser.Editor
 {
     /// <summary>
-    /// MapperEditor
+    /// 映射器
     /// </summary>
     public class MapperEditor
     {
@@ -21,7 +21,7 @@ namespace Plugins.Warehouser
         /// </summary>
         private static readonly string[] IGNORE_EXTENSIONS = new string[1] { ".meta" };
 
-        public static void MapPaths(string[] mapPaths, string pathPairsOutput)
+        public static void Map(string[] mapPaths, string pathPairsOutput)
         {
             //定义所有Pairs
             List<PathPair> allPairs = new List<PathPair>();
@@ -29,8 +29,7 @@ namespace Plugins.Warehouser
             //遍历需要映射的路径
             foreach (string path in mapPaths)
             {
-                FileAttributes attr = File.GetAttributes(path);
-                if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+                if (WarehouserUtils.IsDirectory(path))
                 {
                     List<PathPair> pairs = GetPairsByDirectoryPath(path);
                     allPairs.AddRange(pairs);
@@ -110,7 +109,7 @@ namespace Plugins.Warehouser
             List<PathPair> pairs = new List<PathPair>();
             if (Directory.Exists(path))
             {
-                bool inResources = WarehouserUtils.InResources(path);
+                bool inResources = WarehouserUtils.IsResource(path);
                 DirectoryInfo directory = new DirectoryInfo(path);
                 FileInfo[] files = directory.GetFiles("*.*", SearchOption.AllDirectories);
                 foreach (FileInfo file in files)
@@ -147,7 +146,7 @@ namespace Plugins.Warehouser
                 if (IsIgnore(path))
                     return null;
 
-                bool inResources = WarehouserUtils.InResources(path);
+                bool inResources = WarehouserUtils.IsResource(path);
                 PathPair pair;
                 if (inResources)
                 {

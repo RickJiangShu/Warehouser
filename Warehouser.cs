@@ -16,6 +16,7 @@ using Plugins.Warehouser;
 /// </summary>
 public class Warehouser
 {
+
     /// <summary>
     /// 获取PoolKey通过InstanceID
     /// </summary>
@@ -36,35 +37,8 @@ public class Warehouser
     /// </summary>
     public static void Start()
     {
-        //加载Setting
-        string pathOfSetting = WarehouserUtils.Convert2ResourcesPath(WarehouserSetting.PATH);
-        TextAsset assetOfSetting = Resources.Load<TextAsset>(pathOfSetting); 
-        if (assetOfSetting == null)
-        {
-            Debug.LogError(Tips.NO_SETTING);
-            return;
-        }
-        WarehouserSetting setting = JsonUtility.FromJson<WarehouserSetting>(assetOfSetting.text);
-
         //加载PathPairs
-        PathPairs pairs;
-        if (WarehouserUtils.InResources(setting.pathPairsPath))
-        {
-            string resourcesPath = WarehouserUtils.Convert2ResourcesPath(setting.pathPairsPath);
-            pairs = Resources.Load<PathPairs>(resourcesPath);
-        }
-        else
-        {
-            //assetBundle加载
-            pairs = null;
-        }
-        if (pairs == null)
-        {
-            Debug.LogError(Tips.NO_PAIRS_IN + setting.pathPairsPath);
-            return;
-        }
-
-        //Mapper 初始化
+        PathPairs pairs = Resources.Load<PathPairs>(Constants.PATH_PAIRS_PATH);
         Mapper.Initialize(pairs);
 
         //静态变量赋值

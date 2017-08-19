@@ -18,9 +18,15 @@ namespace Plugins.Warehouser
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public static bool InResources(string path)
+        public static bool IsResource(string path)
         {
             return path.Contains("Resources");
+        }
+
+        public static bool IsDirectory(string path)
+        {
+            FileAttributes attr = File.GetAttributes(path);
+            return (attr & FileAttributes.Directory) == FileAttributes.Directory;
         }
 
         /// <summary>
