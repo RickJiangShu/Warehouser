@@ -16,7 +16,7 @@ public class ObjectPool
 
     public static void Push(string poolKey, object obj)
     {
-        if(Contains(poolKey))
+        if(objectsOfPool.ContainsKey(poolKey))
         {
             objectsOfPool[poolKey].Add(obj);
         }
@@ -26,36 +26,15 @@ public class ObjectPool
         }
     }
 
-    public static T Pull<T>(string poolKey) where T : class
-    {
-        List<object> objects = objectsOfPool[poolKey];
-        object obj = objects[0];
-        objects.RemoveAt(0);
-        return (T)obj;
-    }
-
     public static object Pull(string poolKey)
     {
-        return Pull<object>(poolKey);
-    }
-
-    public static bool TryPull<T>(string poolKey, out T obj) where T : class
-    {
-        if (Contains(poolKey))
+        List<object> objects;
+        if (objectsOfPool.TryGetValue(poolKey, out objects))
         {
-            obj = (T)Pull(poolKey);
-            return true;
+            object obj = objects[0];
+            objects.RemoveAt(0);
+            return obj;
         }
-        obj = null;
-        return false;
-    }
-    public static bool TryPull(string poolKey,out object obj)
-    {
-        return TryPull<object>(poolKey, out obj);
-    }
-
-    public static bool Contains(string poolKey)
-    {
-        return objectsOfPool.ContainsKey(poolKey);
+        return null;
     }
 }

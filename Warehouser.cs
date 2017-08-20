@@ -58,10 +58,10 @@ public class Warehouser
     /// <returns></returns>
     public static T GetInstance<T>(string name, params object[] initArgs) where T : Object
     {
-        T instance;
+        T instance = (T)ObjectPool.Pull(name);
 
         //从对象池取
-        if (ObjectPool.TryPull<T>(name, out instance))
+        if (instance != null)
         {
             if (instance is GameObject)
             {
