@@ -16,6 +16,7 @@ namespace Plugins.Warehouser
         /// </summary>
         public const string SETTING_PATH = "Assets/WarehouserSetting.json";
 
+
         /// <summary>
         /// 路径映射对名字
         /// </summary>

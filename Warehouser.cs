@@ -17,39 +17,46 @@ using Plugins.Warehouser;
 public class Warehouser
 {
     /// <summary>
+    /// AssetBundle 依赖文件
+    /// </summary>
+    private static AssetBundleManifest manifeset;
+
+    /// <summary>
     /// 获取PoolKey通过InstanceID
     /// </summary>
     private static Dictionary<int, string> poolKeysOfInstances;
 
     /// <summary>
-    /// 所有缓存的Resource
+    /// 目前缓存的Bundle
     /// </summary>
-    private static Dictionary<string, Object> resources;
-
-    /// <summary>
-    /// 是否启动
-    /// </summary>
-    public static bool isStarted;
+    private static Dictionary<string, AssetBundle> assetBundles;
 
     /// <summary>
     /// 启动（运行时必先调用）
     /// </summary>
-    public static void Start()
+    public static void Setup()
     {
+        //加载Manifeset
+        AssetBundle manifesetBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "StreamingAssets");
+        manifeset = manifesetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
+        manifesetBundle.Unload(false);
+
         //加载PathPairs
         PathPairs pairs = Resources.Load<PathPairs>(Constants.PATH_PAIRS_PATH);
         Mapper.Initialize(pairs);
 
         //静态变量赋值
         poolKeysOfInstances = new Dictionary<int, string>();
-        resources = new Dictionary<string, Object>();
-
-        isStarted = true;
     }
 
-    public static GameObject Get(string name)
+    public static GameObject GetInstance(string name)
     {
-        return Get<GameObject>(name);
+        return GetInstance<GameObject>(name);
+    }
+
+    public static T GetInstance<T>(string name) where T : Object
+    {
+        return GetInstance<T>(name, name);
     }
     /// <summary>
     /// 获取资源的实例
@@ -57,18 +64,8 @@ public class Warehouser
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static T Get<T>(string name) where T : Object
+    public static T GetInstance<T>(string name, string poolKey, params object[] initArgs) where T : Object
     {
-        return Get<T>(name, name);
-    }
-    public static T Get<T>(string name, string poolKey, bool cacheResource = true,bool supportRecycle = true, params object[] initArgs) where T : Object
-    {
-        if (!isStarted)
-        {
-            Debug.LogError(Tips.NO_START);
-            return null;
-        }
-
         T instance;
         GameObject go;
 
@@ -85,7 +82,7 @@ public class Warehouser
         }
 
         //实例化
-        T resource = GetResource<T>(name, cacheResource);
+        T resource = GetAsset<T>(name);
         instance = UnityEngine.Object.Instantiate<T>(resource);
         
         //建立索引
@@ -120,12 +117,6 @@ public class Warehouser
     /// <param name="instance"></param>
     public static void Recycle(Object instance)
     {
-        if (!isStarted)
-        {
-            Debug.LogError(Tips.NO_START);
-            return;
-        }
-
         int id = instance.GetInstanceID();
         string poolKey;
         if (!poolKeysOfInstances.TryGetValue(id,out poolKey))
@@ -147,85 +138,106 @@ public class Warehouser
             }
         }
     }
-
+    
     /// <summary>
-    /// 销毁实例
-    /// </summary>
-    /// <param name="instace"></param>
-    public static void RemoveKey(Object instace)
-    {
-        if (!isStarted)
-            throw new Exception(Tips.NO_START);
-
-        int id = instace.GetInstanceID();
-        if (poolKeysOfInstances.ContainsKey(id))
-            poolKeysOfInstances.Remove(id);
-
-        Object.Destroy(instace);
-    }
-
-    /// <summary>
-    /// 获取资源
+    /// 获取Asset
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static T GetResource<T>(string name, bool cacheResource = true) where T : Object
+    public static T GetAsset<T>(string name) where T : Object
     {
-        if (!isStarted)
-        {
-            Debug.LogError(Tips.NO_START);
-        }
-
-        Object resource;
-        if (resources.TryGetValue(name, out resource))
-        {
-            return (T)resource;
-        }
+        T asset;
 
         //获取路径
         string path;
         if (!Mapper.TryGetPath(name, out path))
         {
-            Debug.LogError(Tips.NO_GET_PATH);
             return null;
         }
 
         //加载
-        resource = Resources.Load<T>(path);
-
-        if (resource == null)
+        if (WarehouserUtils.IsResource(path))
         {
-            Debug.LogError(Tips.NO_GET_RESOURCE_OF + path);
-            return null;
+            asset = Resources.Load<T>(path);
         }
-
-        //缓存
-        if (cacheResource)
+        else
         {
-            resources.Add(name, resource);
+            AssetBundle bundle;
+            if (assetBundles.TryGetValue(path, out bundle))
+            {
+                asset = bundle.LoadAsset<T>(name);
+            }
+            else
+            {
+                LoadDependencies(path);//加载依赖
+                bundle = LoadAndCacheAssetBundle(path);
+                asset = bundle.LoadAsset<T>(name);
+            }
         }
-
-        return (T)resource;
-        
+        return asset;
     }
 
     /// <summary>
-    /// 资源是否已缓存
+    /// 加载依赖包
     /// </summary>
-    /// <param name="name"></param>
+    /// <param name="assetBundleName"></param>
     /// <returns></returns>
-    public static bool IsLoaded(string name)
+    private static void LoadDependencies(string assetBundleName)
     {
-        if (!isStarted)
+        //加载所有依赖包
+        string[] dependencies = manifeset.GetAllDependencies(assetBundleName);
+        for (int i = 0, l = dependencies.Length; i < l; i++)
         {
-            Debug.LogError(Tips.NO_START);
-        }
+            string dependency = dependencies[i];
+            if (assetBundles.ContainsKey(dependency))
+                continue;
 
-        return resources.ContainsKey(name);
+            LoadAndCacheAssetBundle(dependency);
+        }
+    }
+
+    /// <summary>
+    /// 加载并缓存AssetBundle
+    /// </summary>
+    /// <param name="assetBundleName"></param>
+    private static AssetBundle LoadAndCacheAssetBundle(string assetBundleName)
+    {
+        AssetBundle bundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + assetBundleName);
+        assetBundles.Add(assetBundleName, bundle);
+        return bundle;
     }
 
 
+    /// <summary>
+    /// 卸载Asset
+    /// </summary>
+    /// <param name="asset"></param>
+    public static void UnloadAsset(Object asset)
+    {
+        if (asset is GameObject)
+        {
+            GameObject.DestroyImmediate(asset, true);
+        }
+        else
+        {
+            Resources.UnloadAsset(asset);
+        }
+    }
+
+    /// <summary>
+    /// 卸载AssetBundle
+    /// </summary>
+    /// <param name="assetBundleName"></param>
+    /// <param name="unloadAllLoadedObjects"></param>
+    public static void UnloadAssetBundle(string assetBundleName,bool unloadAllLoadedObjects)
+    {
+        AssetBundle bundle;
+        if (assetBundles.TryGetValue(assetBundleName, out bundle))
+        {
+            bundle.Unload(unloadAllLoadedObjects);
+        }
+    }
 
     /// <summary>
     /// 判断实例是否是 GameObject 并且 有对应的组件
@@ -244,15 +256,4 @@ public class Warehouser
         result = null;
         return false;
     }
-
-
-}
-
-/// <summary>
-/// 资源来源
-/// </summary>
-internal enum ResourceOrinal
-{
-    Resouces,
-    AssetBundle,
 }

@@ -82,7 +82,9 @@ namespace Plugins.Warehouser.Editor
                 EditorUtility.CopySerialized(pathMap, old);
             }
             else
+            {
                 AssetDatabase.CreateAsset(pathMap, pathPairsOutput);
+            }
         }
 
         /// <summary>
