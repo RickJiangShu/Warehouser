@@ -22,11 +22,6 @@ public class Warehouser
     private static AssetBundleManifest manifeset;
 
     /// <summary>
-    /// 获取PoolKey通过InstanceID
-    /// </summary>
-    private static Dictionary<int, string> poolKeysOfInstances;
-
-    /// <summary>
     /// 目前缓存的Bundle
     /// </summary>
     private static Dictionary<string, AssetBundle> assetBundles;
@@ -37,45 +32,40 @@ public class Warehouser
     public static void Setup()
     {
         //加载Manifeset
-        AssetBundle manifesetBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "StreamingAssets");
+        AssetBundle manifesetBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/StreamingAssets");
         manifeset = manifesetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
         manifesetBundle.Unload(false);
 
         //加载PathPairs
-        PathPairs pairs = Resources.Load<PathPairs>(Constants.PATH_PAIRS_PATH);
+        string path = WarehouserUtils.Convert2ResourcesPath(Constants.PATH_PAIRS_PATH);
+        PathPairs pairs = Resources.Load<PathPairs>(path);
         Mapper.Initialize(pairs);
 
-        //静态变量赋值
-        poolKeysOfInstances = new Dictionary<int, string>();
+        //初始化字典
+        assetBundles = new Dictionary<string, AssetBundle>();
     }
 
-    public static GameObject GetInstance(string name)
+    public static GameObject GetInstance(string name, params object[] initArags)
     {
-        return GetInstance<GameObject>(name);
+        return GetInstance<GameObject>(name, initArags);
     }
 
-    public static T GetInstance<T>(string name) where T : Object
-    {
-        return GetInstance<T>(name, name);
-    }
     /// <summary>
     /// 获取资源的实例
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static T GetInstance<T>(string name, string poolKey, params object[] initArgs) where T : Object
+    public static T GetInstance<T>(string name, params object[] initArgs) where T : Object
     {
         T instance;
-        GameObject go;
 
         //从对象池取
-        if (ObjectPool.TryPull<T>(poolKey, out instance))
+        if (ObjectPool.TryPull<T>(name, out instance))
         {
-            IRecycler recycler;
-            go = instance as GameObject;
-            if (go != null && TryGetComponent<IRecycler>(go, out recycler))
+            if (instance is GameObject)
             {
+                IRecycler recycler = ((GameObject)(Object)instance).GetComponent<IRecycler>();
                 recycler.OnPullFromPool();
             }
             return instance;
@@ -85,29 +75,16 @@ public class Warehouser
         T resource = GetAsset<T>(name);
         instance = UnityEngine.Object.Instantiate<T>(resource);
         
-        //建立索引
-        int id = instance.GetInstanceID();
-        poolKeysOfInstances.Add(id, poolKey);
-
-        //GameObject
-        go = instance as GameObject;
         if (instance is GameObject)
         {
+            IInitializer initializer = ((GameObject)(Object)instance).GetComponent<IInitializer>();
+
             //如果有初始化组件，则初始化
-            IInitializer initializer;
-            if (TryGetComponent<IInitializer>(go, out initializer))
+            if (initializer == null)
             {
                 initializer.Initlize(initArgs);
             }
-
-            //如果没有回收组件，添加默认
-            IRecycler recycler;
-            if (!TryGetComponent<IRecycler>(go, out recycler))
-            {
-                go.AddComponent<Recycler>();
-            }
         }
-
         return instance;
     }
 
@@ -115,28 +92,18 @@ public class Warehouser
     /// 回收实例
     /// </summary>
     /// <param name="instance"></param>
-    public static void Recycle(Object instance)
+    public static void Recycle(string name, Object instance)
     {
-        int id = instance.GetInstanceID();
-        string poolKey;
-        if (!poolKeysOfInstances.TryGetValue(id,out poolKey))
-        {
-            Debug.LogError("找不到实例：" + instance.name + " 的PoolKey，将直接销毁！");
-            UnityEngine.Object.Destroy(instance);
-            return;
-        }
-
-        ObjectPool.Push(poolKey, instance);
-
         if (instance is GameObject)
         {
             //回收处理
-            IRecycler recycler;
-            if (TryGetComponent<IRecycler>((GameObject)instance, out recycler))
+            IRecycler recycler = ((GameObject)instance).GetComponent<IRecycler>();
+            if (recycler != null)
             {
                 recycler.OnPushToPool();
             }
         }
+        ObjectPool.Push(name, instance);
     }
     
     /// <summary>
@@ -203,7 +170,7 @@ public class Warehouser
     /// <param name="assetBundleName"></param>
     private static AssetBundle LoadAndCacheAssetBundle(string assetBundleName)
     {
-        AssetBundle bundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + assetBundleName);
+        AssetBundle bundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/" + assetBundleName);
         assetBundles.Add(assetBundleName, bundle);
         return bundle;
     }
@@ -236,11 +203,12 @@ public class Warehouser
         if (assetBundles.TryGetValue(assetBundleName, out bundle))
         {
             bundle.Unload(unloadAllLoadedObjects);
+            assetBundles.Remove(assetBundleName);
         }
     }
 
     /// <summary>
-    /// 判断实例是否是 GameObject 并且 有对应的组件
+    /// 判断是否包含该组件并返回
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="instance"></param>
