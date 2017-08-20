@@ -73,8 +73,8 @@ public class Warehouser
         }
 
         //实例化
-        T resource = GetAsset<T>(name);
-        instance = UnityEngine.Object.Instantiate<T>(resource);
+        T asset = GetAsset<T>(name);
+        instance = UnityEngine.Object.Instantiate<T>(asset);
         
         if (instance is GameObject)
         {
