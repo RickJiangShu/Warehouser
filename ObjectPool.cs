@@ -29,7 +29,7 @@ public class ObjectPool
     public static object Pull(string poolKey)
     {
         List<object> objects;
-        if (objectsOfPool.TryGetValue(poolKey, out objects))
+        if (objectsOfPool.TryGetValue(poolKey, out objects) && objects.Count > 0)
         {
             object obj = objects[0];
             objects.RemoveAt(0);
