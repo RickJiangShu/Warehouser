@@ -24,7 +24,7 @@ namespace Plugins.Warehouser.Editor
         }
          */
 
-        [MenuItem("Assets/Warehouser/Copy Path To Clipboard")]
+        [MenuItem("Assets/Warehouser/Copy Path to Clipboard")]
         static void CopyPathToClipboard()
         {
             string path = GetSelectedPath();
