@@ -74,6 +74,12 @@ public class Warehouser
 
         //实例化
         T asset = GetAsset<T>(name);
+        if (asset == null)
+        {
+            Debug.LogError("找不到：" + name);
+            return null;
+        }
+
         instance = UnityEngine.Object.Instantiate<T>(asset);
         
         if (instance is GameObject)
