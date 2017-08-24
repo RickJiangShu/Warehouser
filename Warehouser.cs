@@ -118,6 +118,7 @@ public class Warehouser
         string path;
         if (!Mapper.TryGetPath(name, out path))
         {
+            Debug.LogError("找不到路径：" + name);
             return null;
         }
 
@@ -144,7 +145,7 @@ public class Warehouser
 
         if (asset == null)
         {
-            Debug.LogError("找不到Asset：" + name);
+            Debug.LogError("Asset加载失败：" + name);
             return null;
         }
 #if UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS) 
