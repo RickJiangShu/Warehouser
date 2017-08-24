@@ -74,11 +74,6 @@ public class Warehouser
 
         //实例化
         T asset = GetAsset<T>(name);
-        if (asset == null)
-        {
-            Debug.LogError("找不到：" + name);
-            return null;
-        }
 
         instance = UnityEngine.Object.Instantiate<T>(asset);
         
@@ -145,6 +140,38 @@ public class Warehouser
                 asset = bundle.LoadAsset<T>(name);
             }
         }
+
+
+        if (asset == null)
+        {
+            Debug.LogError("找不到Asset：" + name);
+            return null;
+        }
+#if UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS) 
+        Type t = typeof(T);
+        if (t == typeof(GameObject))
+        {
+            GameObject go = asset as GameObject;
+            Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
+            foreach (Renderer r in renderers)
+            {
+                string shaderName = r.sharedMaterial.shader.name;
+                r.sharedMaterial.shader = Shader.Find(shaderName);
+            }
+            Projector[] projecters = go.GetComponentsInChildren<Projector>();
+            foreach (Projector p in projecters)
+            {
+                string shaderName = p.material.shader.name;
+                p.material.shader = Shader.Find(shaderName);
+            }
+        }
+        else if (t == typeof(Material))
+        {
+            Material mat = asset as Material;
+            string shaderName = mat.shader.name;
+            mat.shader = Shader.Find(shaderName);
+        }
+#endif
         return asset;
     }
 
