@@ -20,8 +20,13 @@ namespace Plugins.Warehouser.Editor
         public List<string> mapPaths;
 
         /// <summary>
-        /// 包
+        /// AB包
         /// </summary>
-        public List<Package> packages;
+        public List<ABPackage> abPackages;
+
+        /// <summary>
+        /// 图集包
+        /// </summary>
+        public List<AtlasPackage> atlasPackages;
     }
 }

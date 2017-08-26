@@ -14,7 +14,7 @@ namespace Plugins.Warehouser.Editor
     /// <summary>
     /// 打包器
     /// </summary>
-    public class Packager : ScriptableObject
+    public class ABPackager : ScriptableObject
     {
         /// <summary>
         /// 包扩展名
@@ -25,19 +25,19 @@ namespace Plugins.Warehouser.Editor
         /// 打包
         /// </summary>
         /// <param name="packages"></param>
-        public static void Pack(List<Package> packages)
+        public static void Pack(List<ABPackage> packages)
         {
-            foreach (Package package in packages)
+            foreach (ABPackage package in packages)
             {
                 foreach (string path in package.paths)
                 {
                     if (WarehouserUtils.IsDirectory(path))
                     {
-                        PackDirectory(path, package.name);
+                        PackDirectory(path, package.assetBundleName);
                     }
                     else
                     {
-                        PackFile(path, package.name);
+                        PackFile(path, package.assetBundleName);
                     }
                 }
             }
@@ -46,24 +46,23 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// 清理掉非Package指定的Asset Bundle
         /// </summary>
-        public static void Clear(List<Package> packages)
+        public static void Clear(List<ABPackage> packages)
         {
             string[] bundleNames = AssetDatabase.GetAllAssetBundleNames();
             for (int i = 0, length = bundleNames.Length; i < length; i++)
             {
                 string bundleName = bundleNames[i];
                 bool inPackage = false;
-                foreach (Package package in packages)
+                foreach (ABPackage package in packages)
                 {
-                    if (!IsPrefix(package.name))
+                    if (!IsPrefix(package.assetBundleName))
                     {
-                        inPackage = bundleName == package.name;
+                        inPackage = bundleName == package.assetBundleName;
                     }
                     else
                     {
-                        inPackage = bundleName.StartsWith(package.name);
+                        inPackage = bundleName.StartsWith(package.assetBundleName);
                     }
-
                     if (inPackage)
                         break;
                 }

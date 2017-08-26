@@ -35,6 +35,7 @@ namespace Plugins.Warehouser.Editor
         }
         public void OnEnable()
         {
+            
             LoadSetting();  
         }
 
@@ -46,22 +47,11 @@ namespace Plugins.Warehouser.Editor
             EditorGUILayout.BeginVertical();
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 
-            //Packager
-            GUILayout.Label("Packager", EditorStyles.boldLabel);
+            //AB Packager
+            GUILayout.Label("Asset Bundle Packager", EditorStyles.boldLabel);
 
-            //显示Package
-            SerializedProperty packages = so.FindProperty("setting.packages");
-            EditorGUILayout.PropertyField(packages, true);
-
-            if (GUILayout.Button("Clear"))
-            {
-                Packager.Clear(setting.packages);
-            }
-
-            if (GUILayout.Button("Pack"))
-            {
-                Packager.Pack(setting.packages);
-            }
+            SerializedProperty abPackages = so.FindProperty("setting.abPackages");
+            EditorGUILayout.PropertyField(abPackages, true);
 
             EditorGUILayout.Space();
 
@@ -72,25 +62,30 @@ namespace Plugins.Warehouser.Editor
             SerializedProperty mapPathsProp = so.FindProperty("setting.mapPaths");
             EditorGUILayout.PropertyField(mapPathsProp, true);
             
+            EditorGUILayout.Space();
+
+            GUILayout.Label("Operation", EditorStyles.boldLabel);
+
+            if(GUILayout.Button("Clear Unused Packages"))
+            {
+                ABPackager.Clear(setting.abPackages);
+                AtlasPackager.Clear(setting.atlasPackages);
+            }
+
+            if (GUILayout.Button("Pack"))
+            {
+                ABPackager.Pack(setting.abPackages);
+                AtlasPackager.Pack(setting.atlasPackages);
+            }
+
             if (GUILayout.Button("Map"))
             {
                 MapperEditor.Map(setting.mapPaths.ToArray(), Constants.PATH_PAIRS_PATH);
             }
 
-            EditorGUILayout.Space();
-
-            GUILayout.Label("Asset Bundles", EditorStyles.boldLabel);
-
-            /*
-            if(GUILayout.Button("Remove Unused Bundles"))
+            if (GUILayout.Button("Build Asset Bundles"))
             {
-
-            }
-             */
-
-            if (GUILayout.Button("Build"))
-            {
-                Build();
+                BuildAssetBundles();
             }
 
             EditorGUILayout.EndVertical();
@@ -138,9 +133,9 @@ namespace Plugins.Warehouser.Editor
         }
 
         /// <summary>
-        /// 构建AssetBundle
+        /// 构建AssetBundles
         /// </summary>
-        private void Build()
+        private void BuildAssetBundles()
         {
             BuildTarget platform = BuildTarget.iOS;
 #if UNITY_ANDROID

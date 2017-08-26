@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 using Plugins.Warehouser;
 
@@ -43,7 +44,20 @@ public class Warehouser
 
         //初始化字典
         assetBundles = new Dictionary<string, AssetBundle>();
+
+        //侦听图集引用请求
+        SpriteAtlasManager.atlasRequested += AtlasRequest;
     }
+
+    /// <summary>
+    /// 处理图集加载请求
+    /// </summary>
+    private static void AtlasRequest(string name, Action<SpriteAtlas> callback)
+    {
+        SpriteAtlas atlas = GetAsset<SpriteAtlas>(name);
+        callback(atlas);
+    }
+
 
     public static GameObject GetInstance(string name, params object[] initArags)
     {
