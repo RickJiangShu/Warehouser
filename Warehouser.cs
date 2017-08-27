@@ -164,12 +164,12 @@ public class Warehouser
                 break;
         }
 
-
         if (asset == null)
         {
-            Debug.LogError("Asset加载失败：" + name);
+            Debug.LogError("Asset获取失败：" + name);
             return null;
         }
+
 #if UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS) 
         Type t = typeof(T);
         if (t == typeof(GameObject))
