@@ -15,19 +15,19 @@ namespace Plugins.Warehouser
     /// </summary>
     public class Mapper
     {
-        private static Dictionary<string, string> mapOfPath;
+        private static Dictionary<string, Pair> mapOfPair;
 
         /// <summary>
         /// 初始化键值对
         /// </summary>
         /// <param name="pairs"></param>
-        public static void Initialize(PathPairs pairs)
+        public static void Initialize(Pairs pairs)
         {
-            mapOfPath = new Dictionary<string, string>();
+            mapOfPair = new Dictionary<string, Pair>();
             for (int i = 0, c = pairs.Length; i < c; i++)
             {
-                PathPair pair = pairs[i];
-                mapOfPath.Add(pair.name, pair.path);
+                Pair pair = pairs[i];
+                mapOfPair.Add(pair.name, pair);
             }
         }
 
@@ -37,9 +37,9 @@ namespace Plugins.Warehouser
         /// <param name="name">路径</param>
         /// <param name="path">完整路径</param>
         /// <returns></returns>
-        public static bool TryGetPath(string name, out string path)
+        public static bool TryGetPath(string name, out Pair pair)
         {
-            return mapOfPath.TryGetValue(name, out path);
+            return mapOfPair.TryGetValue(name, out pair);
         }
     }
 }

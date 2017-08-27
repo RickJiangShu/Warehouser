@@ -39,7 +39,7 @@ public class Warehouser
 
         //加载PathPairs
         string path = WarehouserUtils.Convert2ResourcesPath(Constants.PATH_PAIRS_PATH);
-        PathPairs pairs = Resources.Load<PathPairs>(path);
+        Pairs pairs = Resources.Load<Pairs>(path);
         Mapper.Initialize(pairs);
 
         //初始化字典
@@ -126,34 +126,42 @@ public class Warehouser
     /// <returns></returns>
     public static T GetAsset<T>(string name) where T : Object
     {
-        T asset;
+        Object asset;
 
         //获取路径
-        string path;
-        if (!Mapper.TryGetPath(name, out path))
+        Pair pair;
+        if (!Mapper.TryGetPath(name, out pair))
         {
             Debug.LogError("找不到路径：" + name);
             return null;
         }
 
         //加载
-        if (WarehouserUtils.IsResource(path))
+        switch (pair.tagType)
         {
-            asset = Resources.Load<T>(path);
-        }
-        else
-        {
-            AssetBundle bundle;
-            if (assetBundles.TryGetValue(path, out bundle))
-            {
-                asset = bundle.LoadAsset<T>(name);
-            }
-            else
-            {
-                LoadDependencies(path);//加载依赖
-                bundle = LoadAndCacheAssetBundle(path);
-                asset = bundle.LoadAsset<T>(name);
-            }
+            case PairTagType.RESOURCES_PATH:
+                asset = Resources.Load<T>(pair.tag);
+                break;
+            case PairTagType.ASSETBUNDLE_NAME:
+                AssetBundle bundle;
+                if (assetBundles.TryGetValue(pair.tag, out bundle))
+                {
+                    asset = bundle.LoadAsset<T>(name);
+                }
+                else
+                {
+                    LoadDependencies(pair.tag);//加载依赖
+                    bundle = LoadAndCacheAssetBundle(pair.tag);
+                    asset = bundle.LoadAsset<T>(name);
+                }
+                break;
+            case PairTagType.ATLAS_NAME:
+                SpriteAtlas atlas = GetAsset<SpriteAtlas>(pair.tag);
+                asset = atlas.GetSprite(name);
+                break;
+            default:
+                asset = null;
+                break;
         }
 
 
@@ -187,7 +195,7 @@ public class Warehouser
             mat.shader = Shader.Find(shaderName);
         }
 #endif
-        return asset;
+        return (T)asset;
     }
 
     /// <summary>

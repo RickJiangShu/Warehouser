@@ -20,7 +20,7 @@ namespace Plugins.Warehouser
         /// <summary>
         /// 路径映射对名字
         /// </summary>
-        public const string PATH_PAIRS_PATH = "Assets/Resources/PathPairs.asset";
+        public const string PATH_PAIRS_PATH = "Assets/Resources/Pairs.asset";
     }
 }
 

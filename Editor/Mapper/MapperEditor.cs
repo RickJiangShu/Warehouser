@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine.U2D;
 
 namespace Plugins.Warehouser.Editor
 {
@@ -24,27 +25,26 @@ namespace Plugins.Warehouser.Editor
         public static void Map(string[] mapPaths, string pathPairsOutput)
         {
             //定义所有Pairs
-            List<PathPair> allPairs = new List<PathPair>();
+            List<Pair> allPairs = new List<Pair>();
 
             //遍历需要映射的路径
             foreach (string path in mapPaths)
             {
+                List<Pair> pairs;
                 if (WarehouserUtils.IsDirectory(path))
                 {
-                    List<PathPair> pairs = GetPairsByDirectoryPath(path);
-                    allPairs.AddRange(pairs);
+                    pairs = GetPairsByDirectoryPath(path);
                 }
                 else
                 {
-                    PathPair pair = GetPairByFilePath(path);
-                    if (pair != null)
-                        allPairs.Add(pair);
+                    pairs = GetPairsByFilePath(path);
                 }
+                allPairs.AddRange(pairs);
             }
 
             //检查是否有重名
             Dictionary<string, int> recordCount = new Dictionary<string, int>();
-            foreach (PathPair pair in allPairs)
+            foreach (Pair pair in allPairs)
             {
                 if (recordCount.ContainsKey(pair.name))
                     recordCount[pair.name]++;
@@ -72,7 +72,7 @@ namespace Plugins.Warehouser.Editor
             }
 
             //生成PathMap
-            PathPairs pathMap = new PathPairs();
+            Pairs pathMap = new Pairs();
             pathMap.pairs = allPairs.ToArray();
 
             //创建PathMap
@@ -106,9 +106,9 @@ namespace Plugins.Warehouser.Editor
         /// 通过目录获取其中的路径对
         /// </summary>
         /// <returns></returns>
-        private static List<PathPair> GetPairsByDirectoryPath(string path)
+        private static List<Pair> GetPairsByDirectoryPath(string path)
         {
-            List<PathPair> pairs = new List<PathPair>();
+            List<Pair> pairs = new List<Pair>();
             if (Directory.Exists(path))
             {
                 bool inResources = WarehouserUtils.IsResource(path);
@@ -116,51 +116,70 @@ namespace Plugins.Warehouser.Editor
                 FileInfo[] files = directory.GetFiles("*.*", SearchOption.AllDirectories);
                 foreach (FileInfo file in files)
                 {
-                    if (IsIgnore(file.Extension))
-                        continue;
-
-                    PathPair pair;
-                    if (inResources)
-                    {
-                        pairs.Add(GetPairByResourceFile(file));
-                    }
-                    else
-                    {
-                        pair = GetPairByAssetBundleFile(file);
-                        if(pair != null)
-                            pairs.Add(pair);
-                    }
+                    pairs.AddRange(GetPairsByFile(file));
                 }
             }
             return pairs;
         }
 
         /// <summary>
-        /// 通过文件路径获取路径对
+        /// 通过文件路径获取对
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        private static PathPair GetPairByFilePath(string path)
+        private static List<Pair> GetPairsByFilePath(string path)
         {
             if (File.Exists(path))
             {
                 FileInfo file = new FileInfo(path);
-                if (IsIgnore(path))
-                    return null;
-
-                bool inResources = WarehouserUtils.IsResource(path);
-                PathPair pair;
-                if (inResources)
-                {
-                    pair = GetPairByResourceFile(file);
-                }
-                else
-                {
-                    pair = GetPairByAssetBundleFile(file);
-                }
-                return pair;
+                return GetPairsByFile(file);
             }
             return null;
+        }
+
+        /// <summary>
+        /// 从文件获取对列表
+        /// </summary>
+        /// <param name="file"></param>
+        /// <returns></returns>
+        private static List<Pair> GetPairsByFile(FileInfo file)
+        {
+            List<Pair> pairs = new List<Pair>();
+
+            if (IsIgnore(file.Extension))
+                return pairs;
+
+            string path = WarehouserUtils.FullName2AssetPath(file.FullName);
+            bool inResources = WarehouserUtils.IsResource(path);
+
+            Pair pair;
+            if (inResources)
+            {
+                pair = GetPairByResourceFile(file);
+            }
+            else
+            {
+                pair = GetPairByAssetBundleFile(file);
+            }
+
+            if (pair != null)
+                pairs.Add(pair);
+
+            //如果是图集
+            if (file.Extension == ".spriteatlas")
+            {
+                SpriteAtlas atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>(path);
+                Sprite[] sprites = new Sprite[atlas.spriteCount];
+                atlas.GetSprites(sprites);
+
+                foreach (Sprite sp in sprites)
+                {
+                    string name = sp.texture.name;
+                    pairs.Add(new Pair(name, atlas.tag, PairTagType.ATLAS_NAME));
+                }
+            }
+
+            return pairs;
         }
 
         /// <summary>
@@ -168,11 +187,11 @@ namespace Plugins.Warehouser.Editor
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        private static PathPair GetPairByResourceFile(FileInfo file)
+        private static Pair GetPairByResourceFile(FileInfo file)
         {
             string name = file.Name.Replace(file.Extension, "");
             string path = WarehouserUtils.Convert2ResourcesPath(file.FullName);
-            return new PathPair(name, path);
+            return new Pair(name, path, PairTagType.RESOURCES_PATH);
         }
 
         /// <summary>
@@ -180,7 +199,7 @@ namespace Plugins.Warehouser.Editor
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        private static PathPair GetPairByAssetBundleFile(FileInfo file)
+        private static Pair GetPairByAssetBundleFile(FileInfo file)
         {
             string assetPath = WarehouserUtils.FullName2AssetPath(file.FullName);
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
@@ -189,7 +208,7 @@ namespace Plugins.Warehouser.Editor
 
             string name = Path.GetFileNameWithoutExtension(file.Name);
             string path = importer.assetBundleName;
-            return new PathPair(name, path);
+            return new Pair(name, path, PairTagType.ASSETBUNDLE_NAME);
         }
     }
 }
