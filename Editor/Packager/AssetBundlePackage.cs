@@ -1,6 +1,6 @@
 ﻿/*
  * Author:  Rick
- * Create:  2017/8/26 10:19:28
+ * Create:  2017/8/19 11:38:15
  * Email:   rickjiangshu@gmail.com
  * Follow:  https://github.com/RickJiangShu
  */
@@ -8,13 +8,12 @@ namespace Plugins.Warehouser.Editor
 {
     using System.Collections.Generic;
     /// <summary>
-    /// 图集包
+    /// Package
     /// </summary>
     [System.Serializable]
-    public class AtlasPackage
+    public class AssetBundlePackage
     {
-        public string tag;
+        public string assetBundleName;
         public List<string> paths;
     }
-
 }

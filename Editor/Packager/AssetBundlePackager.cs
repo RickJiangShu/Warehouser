@@ -14,7 +14,7 @@ namespace Plugins.Warehouser.Editor
     /// <summary>
     /// 打包器
     /// </summary>
-    public class ABPackager : ScriptableObject
+    public class AssetBundlePackager : ScriptableObject
     {
         /// <summary>
         /// 包扩展名
@@ -25,9 +25,9 @@ namespace Plugins.Warehouser.Editor
         /// 打包
         /// </summary>
         /// <param name="packages"></param>
-        public static void Pack(List<ABPackage> packages)
+        public static void Pack(List<AssetBundlePackage> packages)
         {
-            foreach (ABPackage package in packages)
+            foreach (AssetBundlePackage package in packages)
             {
                 foreach (string path in package.paths)
                 {
@@ -46,14 +46,14 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// 清理掉非Package指定的Asset Bundle
         /// </summary>
-        public static void Clear(List<ABPackage> packages)
+        public static void Clear(List<AssetBundlePackage> packages)
         {
             string[] bundleNames = AssetDatabase.GetAllAssetBundleNames();
             for (int i = 0, length = bundleNames.Length; i < length; i++)
             {
                 string bundleName = bundleNames[i];
                 bool inPackage = false;
-                foreach (ABPackage package in packages)
+                foreach (AssetBundlePackage package in packages)
                 {
                     if (!IsPrefix(package.assetBundleName))
                     {

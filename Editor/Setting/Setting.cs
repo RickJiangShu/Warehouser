@@ -22,11 +22,6 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// AB包
         /// </summary>
-        public List<ABPackage> abPackages;
-
-        /// <summary>
-        /// 图集包
-        /// </summary>
-        public List<AtlasPackage> atlasPackages;
+        public List<AssetBundlePackage> assetBundlePackages;
     }
 }

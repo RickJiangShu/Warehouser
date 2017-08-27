@@ -50,7 +50,7 @@ namespace Plugins.Warehouser.Editor
             //AB Packager
             GUILayout.Label("Asset Bundle Packager", EditorStyles.boldLabel);
 
-            SerializedProperty abPackages = so.FindProperty("setting.abPackages");
+            SerializedProperty abPackages = so.FindProperty("setting.assetBundlePackages");
             EditorGUILayout.PropertyField(abPackages, true);
 
             EditorGUILayout.Space();
@@ -68,14 +68,12 @@ namespace Plugins.Warehouser.Editor
 
             if(GUILayout.Button("Clear Unused Packages"))
             {
-                ABPackager.Clear(setting.abPackages);
-                AtlasPackager.Clear(setting.atlasPackages);
+                AssetBundlePackager.Clear(setting.assetBundlePackages);
             }
 
             if (GUILayout.Button("Pack"))
             {
-                ABPackager.Pack(setting.abPackages);
-                AtlasPackager.Pack(setting.atlasPackages);
+                AssetBundlePackager.Pack(setting.assetBundlePackages);
             }
 
             if (GUILayout.Button("Map"))
