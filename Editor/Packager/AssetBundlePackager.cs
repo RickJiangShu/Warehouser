@@ -78,6 +78,24 @@ namespace Plugins.Warehouser.Editor
             AssetDatabase.Refresh();
         }
 
+        /// <summary>
+        /// 清理掉非Package指定的Streaming Assets
+        /// </summary>
+        /// <param name="packages"></param>
+        public static void ClearStreamingAssets(List<AssetBundlePackage> packages)
+        {
+            DirectoryInfo directory = new DirectoryInfo(Application.streamingAssetsPath);
+            if (directory.Exists)
+            {
+                FileInfo[] files = directory.GetFiles("*.manifest", SearchOption.AllDirectories);
+                foreach (FileInfo file in files)
+                {
+               //     WarehouserUtils
+                    Debug.Log(file.FullName);
+                }
+            }
+        }
+
 
         /// <summary>
         /// 打包整个文件夹
@@ -135,7 +153,7 @@ namespace Plugins.Warehouser.Editor
         }
         private static void PackFile(FileInfo file, string name)
         {
-            string assetPath = WarehouserUtils.FullName2AssetPath(file.FullName);
+            string assetPath = WarehouserUtils.WithAssetsPath(file.FullName);
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
             if (importer == null)
                 return;

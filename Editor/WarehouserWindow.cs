@@ -73,7 +73,7 @@ namespace Plugins.Warehouser.Editor
 
             if (GUILayout.Button("Clear Unused StreamingAssets"))
             {
-
+                AssetBundlePackager.ClearStreamingAssets(setting.assetBundlePackages);
             }
 
             if (GUILayout.Button("Pack"))

@@ -34,7 +34,7 @@ namespace Plugins.Warehouser
         /// </summary>
         /// <param name="path"></param>
         /// <returns></returns>
-        public static string Convert2ResourcesPath(string path)
+        public static string WithoutResourcesPath(string path)
         {
             int start = path.IndexOf("Resources");
             string resourcesPath = path.Substring(start + 10);//10 是Resources/ 的字符数
@@ -42,12 +42,14 @@ namespace Plugins.Warehouser
             return resourcesPath;
         }
 
-        public static string FullName2AssetPath(string fullName)
+        public static string WithAssetsPath(string fullName)
         {
             int assetIndx = fullName.IndexOf("Assets");
             string assetPath = fullName.Substring(assetIndx);
             return assetPath.Replace('\\', '/');
         }
+
+        
 
     }
 }

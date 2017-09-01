@@ -38,7 +38,7 @@ public class Warehouser
         manifesetBundle.Unload(false);
 
         //加载PathPairs
-        string path = WarehouserUtils.Convert2ResourcesPath(Constants.PATH_PAIRS_PATH);
+        string path = WarehouserUtils.WithoutResourcesPath(Constants.PATH_PAIRS_PATH);
         Pairs pairs = Resources.Load<Pairs>(path);
         Mapper.Initialize(pairs);
 
