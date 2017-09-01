@@ -46,7 +46,7 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// 清理掉非Package指定的Asset Bundle
         /// </summary>
-        public static void Clear(List<AssetBundlePackage> packages)
+        public static void ClearPackages(List<AssetBundlePackage> packages)
         {
             string[] bundleNames = AssetDatabase.GetAllAssetBundleNames();
             for (int i = 0, length = bundleNames.Length; i < length; i++)
@@ -77,6 +77,7 @@ namespace Plugins.Warehouser.Editor
             AssetDatabase.RemoveUnusedAssetBundleNames();
             AssetDatabase.Refresh();
         }
+
 
         /// <summary>
         /// 打包整个文件夹
