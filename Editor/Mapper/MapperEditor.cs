@@ -22,7 +22,7 @@ namespace Plugins.Warehouser.Editor
         /// </summary>
         private static readonly string[] IGNORE_EXTENSIONS = new string[1] { ".meta" };
 
-        public static void Map(string[] mapPaths, string pathPairsOutput)
+        public static void Map(string[] mapPaths, string pairsOutput)
         {
             //定义所有Pairs
             List<Pair> allPairs = new List<Pair>();
@@ -76,14 +76,19 @@ namespace Plugins.Warehouser.Editor
             pathMap.pairs = allPairs.ToArray();
 
             //创建PathMap
-            if (File.Exists(pathPairsOutput))
+            if (File.Exists(pairsOutput))
             {
-                UnityEngine.Object old = AssetDatabase.LoadMainAssetAtPath(pathPairsOutput);
+                UnityEngine.Object old = AssetDatabase.LoadMainAssetAtPath(pairsOutput);
                 EditorUtility.CopySerialized(pathMap, old);
             }
             else
             {
-                AssetDatabase.CreateAsset(pathMap, pathPairsOutput);
+                string directoryPath = Path.GetDirectoryName(pairsOutput);
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+                AssetDatabase.CreateAsset(pathMap, pairsOutput);
             }
         }
 
