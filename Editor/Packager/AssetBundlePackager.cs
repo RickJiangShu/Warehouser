@@ -46,7 +46,7 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// 清理掉非Package指定的Asset Bundle
         /// </summary>
-        public static void Clear(List<AssetBundlePackage> packages)
+        public static void ClearPackages(List<AssetBundlePackage> packages)
         {
             string[] bundleNames = AssetDatabase.GetAllAssetBundleNames();
             for (int i = 0, length = bundleNames.Length; i < length; i++)
@@ -77,6 +77,25 @@ namespace Plugins.Warehouser.Editor
             AssetDatabase.RemoveUnusedAssetBundleNames();
             AssetDatabase.Refresh();
         }
+
+        /// <summary>
+        /// 清理掉非Package指定的Streaming Assets
+        /// </summary>
+        /// <param name="packages"></param>
+        public static void ClearStreamingAssets(List<AssetBundlePackage> packages)
+        {
+            DirectoryInfo directory = new DirectoryInfo(Application.streamingAssetsPath);
+            if (directory.Exists)
+            {
+                FileInfo[] files = directory.GetFiles("*.manifest", SearchOption.AllDirectories);
+                foreach (FileInfo file in files)
+                {
+               //     WarehouserUtils
+                    Debug.Log(file.FullName);
+                }
+            }
+        }
+
 
         /// <summary>
         /// 打包整个文件夹
