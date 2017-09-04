@@ -173,7 +173,7 @@ namespace Plugins.Warehouser.Editor
         }
         private static void PackFile(FileInfo file, string name)
         {
-            string assetPath = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", false, true);
+            string assetPath = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", true, true);
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
             if (importer == null)
                 return;
@@ -188,7 +188,7 @@ namespace Plugins.Warehouser.Editor
         /// <returns></returns>
         private static bool IsIgnore(string extension)
         {
-            if (extension == ".mate")
+            if (extension == ".meta")
                 return true;
             return false;
         }
