@@ -75,7 +75,7 @@ namespace Plugins.Warehouser.Editor
                 FileInfo[] files = directory.GetFiles("*.manifest", SearchOption.AllDirectories);
                 foreach (FileInfo file in files)
                 {
-                    string bundleName = WarehouserUtils.ConvertPath(file.FullName, "StreamingAssets", false, false, true);
+                    string bundleName = WarehouserUtils.ConvertUnixPath(file.FullName, "StreamingAssets", false, false);
                     if (bundleName == "StreamingAssets")
                         continue;
 
@@ -173,7 +173,7 @@ namespace Plugins.Warehouser.Editor
         }
         private static void PackFile(FileInfo file, string name)
         {
-            string assetPath = WarehouserUtils.ConvertPath(file.FullName, "Assets", false, true, false);
+            string assetPath = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", false, true);
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
             if (importer == null)
                 return;

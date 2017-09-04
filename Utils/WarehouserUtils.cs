@@ -30,16 +30,18 @@ namespace Plugins.Warehouser
         }
 
         /// <summary>
-        /// 转换路径
+        /// 转换Unix路径
         /// </summary>
         /// <param name="path">完整路径</param>
         /// <param name="directoryName">目录名</param>
         /// <param name="withDirectory">包含目录</param>
         /// <param name="withExtension">包含拓展名</param>
         /// <returns></returns>
-        public static string ConvertPath(string path,string directoryName,bool withDirectory,bool withExtension,bool toUnix)
+        public static string ConvertUnixPath(string path,string directoryName,bool withDirectory,bool withExtension)
         {
-            string directory = directoryName + Path.DirectorySeparatorChar; 
+            path = path.Replace('\\', '/');
+
+            string directory = directoryName + '/'; 
             int start = path.IndexOf(directory);
             if (withDirectory)
             {
@@ -52,10 +54,6 @@ namespace Plugins.Warehouser
             if (!withExtension)
             {
                 path = Path.ChangeExtension(path, null);
-            }
-            if (toUnix)
-            {
-                path = path.Replace('\\', '/');
             }
             return path;
         }
