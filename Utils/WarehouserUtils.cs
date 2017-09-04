@@ -37,11 +37,7 @@ namespace Plugins.Warehouser
         /// <param name="withDirectory">包含目录</param>
         /// <param name="withExtension">包含拓展名</param>
         /// <returns></returns>
-<<<<<<< Updated upstream
-        public static string Convert2ResourcesPath(string path)
-=======
         public static string ConvertPath(string path,string directory,bool withDirectory,bool withExtension)
->>>>>>> Stashed changes
         {
             int start = path.IndexOf(directory);
             if (withDirectory)
@@ -58,17 +54,6 @@ namespace Plugins.Warehouser
             }
             return path;
         }
-
-<<<<<<< Updated upstream
-        public static string FullName2AssetPath(string fullName)
-        {
-            int assetIndx = fullName.IndexOf("Assets");
-            string assetPath = fullName.Substring(assetIndx);
-            return assetPath.Replace('\\', '/');
-        }
-
-=======
->>>>>>> Stashed changes
     }
 }
 
