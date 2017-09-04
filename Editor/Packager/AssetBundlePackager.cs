@@ -134,7 +134,11 @@ namespace Plugins.Warehouser.Editor
         }
         private static void PackFile(FileInfo file, string name)
         {
+<<<<<<< Updated upstream
             string assetPath = WarehouserUtils.FullName2AssetPath(file.FullName);
+=======
+            string assetPath = WarehouserUtils.ConvertPath(file.FullName, "Assets/", false, true);
+>>>>>>> Stashed changes
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
             if (importer == null)
                 return;

@@ -38,7 +38,11 @@ public class Warehouser
         manifesetBundle.Unload(false);
 
         //加载PathPairs
+<<<<<<< Updated upstream
         string path = WarehouserUtils.Convert2ResourcesPath(Constants.PATH_PAIRS_PATH);
+=======
+        string path = WarehouserUtils.ConvertPath(Constants.PATH_PAIRS_PATH, "Resources/", false, false);
+>>>>>>> Stashed changes
         Pairs pairs = Resources.Load<Pairs>(path);
         Mapper.Initialize(pairs);
 
