@@ -20,7 +20,7 @@ public class Warehouser
     /// <summary>
     /// AssetBundle 依赖文件
     /// </summary>
-    private static AssetBundleManifest manifeset;
+    private static AssetBundleManifest manifest;
 
     /// <summary>
     /// 目前缓存的Bundle
@@ -34,11 +34,11 @@ public class Warehouser
     {
         //加载Manifeset
         AssetBundle manifesetBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/StreamingAssets");
-        manifeset = manifesetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
+        manifest = manifesetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
         manifesetBundle.Unload(false);
 
         //加载PathPairs
-        string path = WarehouserUtils.ConvertPath(Constants.PATH_PAIRS_PATH, "Resources/", false, false);
+        string path = WarehouserUtils.ConvertPath(Constants.PATH_PAIRS_PATH, "Resources", false, false, false);
         Pairs pairs = Resources.Load<Pairs>(path);
         Mapper.Initialize(pairs);
 
@@ -206,7 +206,7 @@ public class Warehouser
     private static void LoadDependencies(string assetBundleName)
     {
         //加载所有依赖包
-        string[] dependencies = manifeset.GetAllDependencies(assetBundleName);
+        string[] dependencies = manifest.GetAllDependencies(assetBundleName);
         for (int i = 0, l = dependencies.Length; i < l; i++)
         {
             string dependency = dependencies[i];

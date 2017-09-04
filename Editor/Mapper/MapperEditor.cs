@@ -154,7 +154,7 @@ namespace Plugins.Warehouser.Editor
             if (IsIgnore(file.Extension))
                 return pairs;
 
-            string path = WarehouserUtils.ConvertPath(file.FullName, "Assets/", false, true);
+            string path = WarehouserUtils.ConvertPath(file.FullName, "Assets", false, true, false);
             bool inResources = WarehouserUtils.IsResource(path);
 
             Pair pair;
@@ -195,7 +195,7 @@ namespace Plugins.Warehouser.Editor
         private static Pair GetPairByResourceFile(FileInfo file)
         {
             string name = file.Name.Replace(file.Extension, "");
-            string path = WarehouserUtils.ConvertPath(file.FullName, "Assets/", false, true);
+            string path = WarehouserUtils.ConvertPath(file.FullName, "Assets", false, true, false);
             return new Pair(name, path, PairTagType.RESOURCES_PATH);
         }
 
@@ -206,7 +206,7 @@ namespace Plugins.Warehouser.Editor
         /// <returns></returns>
         private static Pair GetPairByAssetBundleFile(FileInfo file)
         {
-            string assetPath = WarehouserUtils.ConvertPath(file.FullName, "Assets/", false, true);
+            string assetPath = WarehouserUtils.ConvertPath(file.FullName, "Assets", false, true, false);
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
             if (importer == null || string.IsNullOrEmpty(importer.assetBundleName))
                 return null;
