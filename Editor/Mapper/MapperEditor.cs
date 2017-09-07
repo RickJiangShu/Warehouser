@@ -212,7 +212,7 @@ namespace Plugins.Warehouser.Editor
         /// <returns></returns>
         private static Pair GetPairByAssetBundleFile(FileInfo file)
         {
-            string assetPath = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", false, true);
+            string assetPath = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", true, true);
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
             if (importer == null || string.IsNullOrEmpty(importer.assetBundleName))
                 return null;
