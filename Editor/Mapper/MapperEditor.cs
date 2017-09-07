@@ -154,7 +154,7 @@ namespace Plugins.Warehouser.Editor
             if (IsIgnore(file.Extension))
                 return pairs;
 
-            string path = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", false, true);
+            string path = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", true, true);
             bool inResources = WarehouserUtils.IsResource(path);
 
             Pair pair;
@@ -174,6 +174,12 @@ namespace Plugins.Warehouser.Editor
             if (file.Extension == ".spriteatlas")
             {
                 SpriteAtlas atlas = AssetDatabase.LoadAssetAtPath<SpriteAtlas>(path);
+                if (atlas == null)
+                {
+                    Debug.LogError("SpriteAtlas Load Error:" + path);
+                    return pairs;
+                }
+
                 Sprite[] sprites = new Sprite[atlas.spriteCount];
                 atlas.GetSprites(sprites);
 
