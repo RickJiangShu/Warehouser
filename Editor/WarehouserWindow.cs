@@ -66,14 +66,9 @@ namespace Plugins.Warehouser.Editor
 
             GUILayout.Label("Operation", EditorStyles.boldLabel);
 
-            if(GUILayout.Button("Clear Unused Packages"))
+            if(GUILayout.Button("Clear"))
             {
-                AssetBundlePackager.ClearPackages(setting.assetBundlePackages);
-            }
-
-            if (GUILayout.Button("Clear Unused StreamingAssets"))
-            {
-                AssetBundlePackager.ClearStreamingAssets(setting.assetBundlePackages);
+                AssetBundlePackager.Clear(setting.assetBundlePackages);
             }
 
             if (GUILayout.Button("Pack"))

@@ -44,32 +44,26 @@ namespace Plugins.Warehouser.Editor
         }
 
         /// <summary>
-        /// 清理掉非Package指定的Asset Bundle
+        /// 清理不用的AssetBundle
         /// </summary>
-        public static void ClearPackages(List<AssetBundlePackage> packages)
+        /// <param name="packages"></param>
+        public static void Clear(List<AssetBundlePackage> packages)
         {
+            //删除不在包中的BundleName
             string[] bundleNames = AssetDatabase.GetAllAssetBundleNames();
             for (int i = 0, length = bundleNames.Length; i < length; i++)
             {
                 string bundleName = bundleNames[i];
                 //如果不包含在包中
-                if (!Contains(packages,bundleName))
+                if (!Contains(packages, bundleName))
                 {
                     AssetDatabase.RemoveAssetBundleName(bundleName, true);
                     Debug.Log("Clear Package:" + bundleName);
                 }
             }
 
-            AssetDatabase.RemoveUnusedAssetBundleNames();
-            AssetDatabase.Refresh();
-        }
-
-        /// <summary>
-        /// 清理掉非Package指定的Streaming Assets
-        /// </summary>
-        /// <param name="packages"></param>
-        public static void ClearStreamingAssets(List<AssetBundlePackage> packages)
-        {
+            //删除Streaming Assets
+            List<string> unusedNames = new List<string>(AssetDatabase.GetUnusedAssetBundleNames());
             DirectoryInfo directory = new DirectoryInfo(Application.streamingAssetsPath);
             if (directory.Exists)
             {
@@ -80,8 +74,8 @@ namespace Plugins.Warehouser.Editor
                     if (bundleName == "StreamingAssets")
                         continue;
 
-                    //删除
-                    if (!Contains(packages, bundleName))
+                    //不用的Name里包含 || 不包含包里
+                    if (unusedNames.Contains(bundleName) || !Contains(packages, bundleName))
                     {
                         string bundlePath = Path.ChangeExtension(file.FullName, null);
                         File.Delete(bundlePath);
@@ -90,6 +84,8 @@ namespace Plugins.Warehouser.Editor
                     }
                 }
             }
+            AssetDatabase.RemoveUnusedAssetBundleNames();
+            AssetDatabase.Refresh();
         }
 
         /// <summary>
@@ -141,7 +137,6 @@ namespace Plugins.Warehouser.Editor
                     }
                     else
                     {
-                  //      string fullDirectoryPath = directory.FullName.
                         string relativePath = file.FullName.Substring(directory.FullName.Length + 1);
                         string bundleName = name + relativePath;
                         bundleName = Path.ChangeExtension(bundleName, EXTENSION);
