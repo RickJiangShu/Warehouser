@@ -103,6 +103,15 @@ public class Warehouser
     }
 
     /// <summary>
+    /// 销毁特效
+    /// </summary>
+    /// <param name="instance"></param>
+    public static void DestoryInstance(Object instance)
+    {
+        Object.Destroy(instance);
+    }
+        
+    /// <summary>
     /// 回收实例
     /// </summary>
     /// <param name="instance"></param>
@@ -117,6 +126,7 @@ public class Warehouser
         }
         ObjectPool.Push(name, instance);
     }
+
     
     /// <summary>
     /// 获取Asset
