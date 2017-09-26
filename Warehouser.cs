@@ -101,15 +101,6 @@ public class Warehouser
         }
         return instance;
     }
-
-    /// <summary>
-    /// 销毁特效
-    /// </summary>
-    /// <param name="instance"></param>
-    public static void DestoryInstance(Object instance)
-    {
-        Object.Destroy(instance);
-    }
         
     /// <summary>
     /// 回收实例
