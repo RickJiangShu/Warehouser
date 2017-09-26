@@ -86,6 +86,8 @@ namespace Plugins.Warehouser.Editor
             }
             AssetDatabase.RemoveUnusedAssetBundleNames();
             AssetDatabase.Refresh();
+
+            Debug.Log("Clear Complete !");
         }
 
         /// <summary>
@@ -96,16 +98,17 @@ namespace Plugins.Warehouser.Editor
         {
             foreach (AssetBundlePackage package in packages)
             {
-                if (!IsPrefix(package.assetBundleName))
+                string lower = package.assetBundleName.ToLower();
+                if (!IsPrefix(lower))
                 {
-                    if (bundleName == package.assetBundleName)
+                    if (bundleName == lower)
                     {
                         return true;
                     }
                 }
                 else
                 {
-                    if (bundleName.StartsWith(package.assetBundleName))
+                    if (bundleName.StartsWith(lower))
                     {
                         return true;
                     }
