@@ -29,6 +29,18 @@ namespace Plugins.Warehouser
             return (attr & FileAttributes.Directory) == FileAttributes.Directory;
         }
 
+
+        #region UNITY_EDITOR_WIN
+        /// <summary>
+        /// 转换分割符
+        /// </summary>
+        /// <returns></returns>
+        public static string ConverSeparator(string path)
+        {
+            return path.Replace('\\', '/');
+        }
+        #endregion
+
         /// <summary>
         /// 转换Unix路径
         /// </summary>

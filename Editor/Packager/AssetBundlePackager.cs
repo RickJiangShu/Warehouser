@@ -33,14 +33,28 @@ namespace Plugins.Warehouser.Editor
                 {
                     if (WarehouserUtils.IsDirectory(path))
                     {
-                        PackDirectory(path, package.assetBundleName);
+                        //PackDirectory
+                        if (Directory.Exists(path))
+                        {
+                            FileInfo[] files = GetFiles(path);
+                            foreach (FileInfo file in files)
+                            {
+                                PackFile(file, package.assetBundleName, path);
+                            }
+                        }
                     }
                     else
                     {
-                        PackFile(path, package.assetBundleName);
+                        //PackFile
+                        if (File.Exists(path))
+                        {
+                            FileInfo file = new FileInfo(path);
+                            PackFile(file, package.assetBundleName);
+                        }
                     }
                 }
             }
+            Debug.Log("Pack Complete !");
         }
 
         /// <summary>
@@ -110,75 +124,121 @@ namespace Plugins.Warehouser.Editor
                 {
                     if (bundleName.StartsWith(lower))
                     {
-                        return true;
+                        //判断是否还在该Package包含的目录中
+                        string fileBundleName;
+                        foreach (string path in package.paths)
+                        {
+                            if (WarehouserUtils.IsDirectory(path))
+                            {
+                                //PackDirectory
+                                if (Directory.Exists(path))
+                                {
+                                    FileInfo[] files = GetFiles(path);
+                                    foreach (FileInfo file in files)
+                                    {
+                                        fileBundleName = GetBundleName(file.FullName, package.assetBundleName, path);
+
+                                        if (bundleName == fileBundleName)
+                                            return true;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                //PackFile
+                                if (File.Exists(path))
+                                {
+                                    FileInfo file = new FileInfo(path);
+                                    fileBundleName = GetBundleName(file.FullName, package.assetBundleName);
+
+                                    if (bundleName == fileBundleName)
+                                        return true;
+                                }
+                            }
+                        }
+                        return false;
                     }
                 }
             }
             return false;
         }
 
-
-        /// <summary>
-        /// 打包整个文件夹
-        /// </summary>
-        /// <param name="path"></param>
-        private static void PackDirectory(string path, string name)
-        {
-            if (Directory.Exists(path))
-            {
-                bool isPrefix = IsPrefix(name);
-                DirectoryInfo directory = new DirectoryInfo(path);
-                FileInfo[] files = directory.GetFiles("*.*", SearchOption.AllDirectories);
-                foreach (FileInfo file in files)
-                {
-                    if (IsIgnore(file.Extension))
-                        continue;
-
-                    if (!isPrefix)
-                    {
-                        PackFile(file, name);
-                    }
-                    else
-                    {
-                        string relativePath = file.FullName.Substring(directory.FullName.Length + 1);
-                        string bundleName = name + relativePath;
-                        bundleName = Path.ChangeExtension(bundleName, EXTENSION);
-                        PackFile(file, bundleName);
-                    }
-                }
-            }
-        }
-
         /// <summary>
         /// 打包单个文件
         /// </summary>
         /// <param name="path"></param>
-        private static void PackFile(string path, string name)
-        {
-            if (File.Exists(path))
-            {
-                FileInfo file = new FileInfo(path);
-                bool isPrefix = IsPrefix(name);
-
-                if (!isPrefix)
-                {
-                    PackFile(file, name);
-                }
-                else
-                {
-                    string bundleName = name + file.Name + EXTENSION;
-                    PackFile(file, bundleName);
-                }
-            }
-        }
-        private static void PackFile(FileInfo file, string name)
+        private static void PackFile(FileInfo file, string packageName, string directoryPath = null)
         {
             string assetPath = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", true, true);
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
             if (importer == null)
                 return;
 
-            importer.assetBundleName = name;
+            string bundleName = GetBundleName(file.FullName, packageName, directoryPath);
+            importer.assetBundleName = bundleName;
+
+            Debug.Log("Pack: " + bundleName);
+        }
+
+
+        /// <summary>
+        /// 通过路径获取文件
+        /// </summary>
+        /// <returns></returns>
+        private static FileInfo[] GetFiles(string directoryPath)
+        {
+            List<FileInfo> files = new List<FileInfo>();
+
+            //文件夹中所有文件
+            DirectoryInfo directory = new DirectoryInfo(directoryPath);
+            FileInfo[] allFiles = directory.GetFiles("*.*", SearchOption.AllDirectories);
+            foreach (FileInfo file in allFiles)
+            {
+                //过滤
+                if (IsIgnore(file.Extension))
+                    continue;
+
+                files.Add(file);
+            }
+            return files.ToArray();
+        }
+
+        /// <summary>
+        /// 获取BundleName
+        /// </summary>
+        /// <param name="fileFullName"></param>
+        /// <param name="packageName"></param>
+        /// <param name="directoryPath"></param>
+        /// <returns></returns>
+        private static string GetBundleName(string fileFullName, string packageName, string directoryPath = null)
+        {
+            string bundleName;
+            //无前缀
+            if (!IsPrefix(packageName))
+            {
+                bundleName = packageName.ToLower();
+                return bundleName;
+            }
+            //有前缀
+            else
+            {
+                //目录下的子文件
+                if (!string.IsNullOrEmpty(directoryPath))
+                {
+                    string filePath = fileFullName;
+#if UNITY_EDITOR_WIN
+                    filePath = WarehouserUtils.ConverSeparator(filePath);
+#endif
+                    string relativePath = filePath.Substring(directoryPath.Length + 1);
+                    bundleName = packageName + Path.ChangeExtension(relativePath, EXTENSION);
+                }
+                else
+                {
+                    string fileName = Path.GetFileName(fileFullName);
+                    bundleName = packageName + Path.ChangeExtension(fileName, EXTENSION);
+                }
+                return bundleName;
+            }
         }
 
         /// <summary>
