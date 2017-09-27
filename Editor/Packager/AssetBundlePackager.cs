@@ -68,28 +68,83 @@ namespace Plugins.Warehouser.Editor
             for (int i = 0, length = bundleNames.Length; i < length; i++)
             {
                 string bundleName = bundleNames[i];
-                //如果不包含在包中
-                if (!Contains(packages, bundleName))
+
+                //找到对应Package
+                AssetBundlePackage inPackage = null;
+                foreach (AssetBundlePackage package in packages)
                 {
-                    AssetDatabase.RemoveAssetBundleName(bundleName, true);
+                    string packageName = package.assetBundleName.ToLower();
+                    if (!IsPrefix(packageName))
+                    {
+                        if (bundleName == packageName)
+                        {
+                            inPackage = package;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if (bundleName.StartsWith(packageName))
+                        {
+                            inPackage = package;
+                            break;
+                        }
+                    }
+                }
+
+                //如果找不到包
+                if (inPackage == null)
+                {
+                    AssetDatabase.RemoveAssetBundleName(bundleName, true);//该bundleName根本不存在
                     Debug.Log("Clear Package:" + bundleName);
+                    continue;
+                }
+
+                //找到该AssetBundle中所有Asset的路径
+                string[] assets = AssetDatabase.GetAssetPathsFromAssetBundle(bundleName);
+
+                //判断Asset是否依然包含在Package的路径中
+                foreach (string asset in assets)
+                {
+                    bool inPath = false;
+                    foreach (string path in inPackage.paths)
+                    {
+                        if (asset.StartsWith(path))
+                        {
+                            inPath = true;
+                            break;
+                        }
+                    }
+
+                    if (!inPath)
+                    {
+                        AssetImporter importer = AssetImporter.GetAtPath(asset);
+                        if (importer == null)
+                            continue;
+
+                        importer.assetBundleName = null;//bundleName存在于Package中，但该Asset的路径不包含在Paths中
+                        Debug.Log("Clear AssetBundleName:" + asset);
+                    }
                 }
             }
 
+            //删除无引用的BundleNames
+            AssetDatabase.RemoveUnusedAssetBundleNames();
+
             //删除Streaming Assets
-            List<string> unusedNames = new List<string>(AssetDatabase.GetUnusedAssetBundleNames());
             DirectoryInfo directory = new DirectoryInfo(Application.streamingAssetsPath);
             if (directory.Exists)
             {
-                FileInfo[] files = directory.GetFiles("*.manifest", SearchOption.AllDirectories);
-                foreach (FileInfo file in files)
+                List<string> userdNames = new List<string>(AssetDatabase.GetAllAssetBundleNames());
+                FileInfo[] manifests = directory.GetFiles("*.manifest", SearchOption.AllDirectories);
+                foreach (FileInfo file in manifests)
                 {
                     string bundleName = WarehouserUtils.ConvertUnixPath(file.FullName, "StreamingAssets", false, false);
                     if (bundleName == "StreamingAssets")
                         continue;
 
-                    //不用的Name里包含 || 不包含包里
-                    if (unusedNames.Contains(bundleName) || !Contains(packages, bundleName))
+                    //
+                    if (!userdNames.Contains(bundleName))
                     {
                         string bundlePath = Path.ChangeExtension(file.FullName, null);
                         File.Delete(bundlePath);
@@ -98,69 +153,10 @@ namespace Plugins.Warehouser.Editor
                     }
                 }
             }
-            AssetDatabase.RemoveUnusedAssetBundleNames();
+
             AssetDatabase.Refresh();
 
             Debug.Log("Clear Complete !");
-        }
-
-        /// <summary>
-        /// 判断一个BundleName是否包含在Packages里
-        /// </summary>
-        /// <returns></returns>
-        public static bool Contains(List<AssetBundlePackage> packages, string bundleName)
-        {
-            foreach (AssetBundlePackage package in packages)
-            {
-                string lower = package.assetBundleName.ToLower();
-                if (!IsPrefix(lower))
-                {
-                    if (bundleName == lower)
-                    {
-                        return true;
-                    }
-                }
-                else
-                {
-                    if (bundleName.StartsWith(lower))
-                    {
-                        //判断是否还在该Package包含的目录中
-                        string fileBundleName;
-                        foreach (string path in package.paths)
-                        {
-                            if (WarehouserUtils.IsDirectory(path))
-                            {
-                                //PackDirectory
-                                if (Directory.Exists(path))
-                                {
-                                    FileInfo[] files = GetFiles(path);
-                                    foreach (FileInfo file in files)
-                                    {
-                                        fileBundleName = GetBundleName(file.FullName, package.assetBundleName, path);
-
-                                        if (bundleName == fileBundleName)
-                                            return true;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                //PackFile
-                                if (File.Exists(path))
-                                {
-                                    FileInfo file = new FileInfo(path);
-                                    fileBundleName = GetBundleName(file.FullName, package.assetBundleName);
-
-                                    if (bundleName == fileBundleName)
-                                        return true;
-                                }
-                            }
-                        }
-                        return false;
-                    }
-                }
-            }
-            return false;
         }
 
         /// <summary>
@@ -230,7 +226,8 @@ namespace Plugins.Warehouser.Editor
 #if UNITY_EDITOR_WIN
                     filePath = WarehouserUtils.ConverSeparator(filePath);
 #endif
-                    string relativePath = filePath.Substring(directoryPath.Length + 1);
+                    int startIndex = filePath.IndexOf(directoryPath) + directoryPath.Length;
+                    string relativePath = filePath.Substring(startIndex);
                     bundleName = packageName + Path.ChangeExtension(relativePath, EXTENSION);
                 }
                 else
