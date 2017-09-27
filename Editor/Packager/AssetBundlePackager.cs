@@ -175,8 +175,10 @@ namespace Plugins.Warehouser.Editor
                 return;
 
             string bundleName = GetBundleName(file.FullName, packageName, directoryPath);
-            importer.assetBundleName = bundleName;
+            if (importer.assetBundleName == bundleName)
+                return;
 
+            importer.assetBundleName = bundleName;
             Debug.Log("Pack: " + bundleName);
         }
 
@@ -216,8 +218,7 @@ namespace Plugins.Warehouser.Editor
             //无前缀
             if (!IsPrefix(packageName))
             {
-                bundleName = packageName.ToLower();
-                return bundleName;
+                bundleName = packageName;
             }
             //有前缀
             else
@@ -237,8 +238,8 @@ namespace Plugins.Warehouser.Editor
                     string fileName = Path.GetFileName(fileFullName);
                     bundleName = packageName + Path.ChangeExtension(fileName, EXTENSION);
                 }
-                return bundleName;
             }
+            return bundleName.ToLower();
         }
 
         /// <summary>
