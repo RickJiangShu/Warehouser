@@ -152,11 +152,33 @@ namespace Plugins.Warehouser.Editor
                         Debug.Log("Clear StreamingAsset:" + bundlePath);
                     }
                 }
+
+                //清除空文件夹
+                ClearEmptyDirectories(Application.streamingAssetsPath);
             }
 
             AssetDatabase.Refresh();
 
             Debug.Log("Clear Complete !");
+        }
+
+        /// <summary>
+        /// 清理空的文件夹
+        /// </summary>
+        /// <param name="path"></param>
+        private static void ClearEmptyDirectories(string path)
+        {
+            string[] subDirectories = Directory.GetDirectories(path);
+            foreach (string directory in subDirectories)
+            {
+                ClearEmptyDirectories(directory);
+                if (Directory.GetFileSystemEntries(directory).Length == 0)
+                {
+                    Directory.Delete(directory, false);
+                    File.Delete(directory + ".meta");
+                    Debug.Log("Clear Empty Directory:" + directory);
+                }
+            }
         }
 
         /// <summary>
@@ -226,7 +248,8 @@ namespace Plugins.Warehouser.Editor
 #if UNITY_EDITOR_WIN
                     filePath = WarehouserUtils.ConverSeparator(filePath);
 #endif
-                    int startIndex = filePath.IndexOf(directoryPath) + directoryPath.Length;
+                    int length = directoryPath.Length;
+                    int startIndex = filePath.IndexOf(directoryPath) + (directoryPath[length - 1] == '/' ? length : length + 1);
                     string relativePath = filePath.Substring(startIndex);
                     bundleName = packageName + Path.ChangeExtension(relativePath, EXTENSION);
                 }
