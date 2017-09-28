@@ -14,5 +14,5 @@ using UnityEngine;
 public interface IRecycler
 {
     void OnPushToPool();
-    void OnPullFromPool();
+    void OnPullFromPool(params object[] args);
 }

@@ -10,5 +10,5 @@
 /// </summary>
 public interface IInitializer
 {
-    void Initlize(params object[] args);
+    void Initialize(params object[] args);
 }

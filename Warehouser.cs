@@ -80,7 +80,7 @@ public class Warehouser
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static T GetInstance<T>(string name, params object[] initArgs) where T : Object
+    public static T GetInstance<T>(string name, params object[] args) where T : Object
     {
         T instance = (T)ObjectPool.Pull(name);
 
@@ -91,7 +91,7 @@ public class Warehouser
             {
                 IRecycler recycler = ((GameObject)(Object)instance).GetComponent<IRecycler>();
                 if(recycler != null)
-                    recycler.OnPullFromPool();
+                    recycler.OnPullFromPool(args);
             }
 #if UNITY_EDITOR
             Observer.recycleNumber--;
@@ -110,7 +110,7 @@ public class Warehouser
 
             //如果有初始化组件，则初始化
             if (initializer != null)
-                initializer.Initlize(initArgs);
+                initializer.Initialize(args);
 
 #if UNITY_EDITOR
             Observer.gameObjectNumber++;
