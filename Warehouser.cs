@@ -12,6 +12,10 @@ using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 using Plugins.Warehouser;
 
+#if UNITY_EDITOR
+using Plugins.Warehouser.Editor;
+#endif
+
 /// <summary>
 /// 资源管理器 
 /// </summary>
@@ -47,6 +51,12 @@ public class Warehouser
 
         //侦听图集引用请求
         SpriteAtlasManager.atlasRequested += AtlasRequest;
+
+#if UNITY_EDITOR
+        GameObject observer = new GameObject("Observer");
+        observer.AddComponent<Observer>();
+        Object.DontDestroyOnLoad(observer);
+#endif
     }
 
     /// <summary>
@@ -83,6 +93,9 @@ public class Warehouser
                 if(recycler != null)
                     recycler.OnPullFromPool();
             }
+#if UNITY_EDITOR
+            Observer.recycleNumber--;
+#endif
             return instance;
         }
 
@@ -98,7 +111,17 @@ public class Warehouser
             //如果有初始化组件，则初始化
             if (initializer != null)
                 initializer.Initlize(initArgs);
+
+#if UNITY_EDITOR
+            Observer.gameObjectNumber++;
+#endif
         }
+
+#if UNITY_EDITOR
+        Observer.getInstanceCount++;
+        Observer.instanceNumber++;
+#endif
+
         return instance;
     }
         
@@ -116,6 +139,30 @@ public class Warehouser
                 recycler.OnPushToPool();
         }
         ObjectPool.Push(name, instance);
+
+#if UNITY_EDITOR
+        Observer.recycleNumber++;
+        Observer.recycleCount++;
+#endif
+    }
+
+    /// <summary>
+    /// 销毁实例
+    /// </summary>
+    /// <param name="instance"></param>
+    public static void Destroy(Object instance, float delay = 0.0f)
+    {
+        Object.Destroy(instance, delay);
+
+#if UNITY_EDITOR
+        Observer.destroyCount++;
+        Observer.instanceNumber--;
+
+        if (instance is GameObject)
+        {
+            Observer.gameObjectNumber--;
+        }
+#endif
     }
 
     
@@ -171,6 +218,7 @@ public class Warehouser
             return null;
         }
 
+        //处理在Andorid和IOS平台时编辑器下的Shader丢失问题
 #if UNITY_EDITOR && (UNITY_ANDROID || UNITY_IOS) 
         Type t = typeof(T);
         if (t == typeof(GameObject))
@@ -195,6 +243,10 @@ public class Warehouser
             string shaderName = mat.shader.name;
             mat.shader = Shader.Find(shaderName);
         }
+#endif
+
+#if UNITY_EDITOR
+        Observer.getAssetCount++;
 #endif
         return (T)asset;
     }
@@ -244,6 +296,10 @@ public class Warehouser
         {
             Resources.UnloadAsset(asset);
         }
+
+#if UNITY_EDITOR
+        Observer.unloadAssetCount++;
+#endif
     }
 
     /// <summary>
