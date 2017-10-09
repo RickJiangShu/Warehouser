@@ -90,6 +90,8 @@ namespace Plugins.Warehouser.Editor
                 }
                 AssetDatabase.CreateAsset(pathMap, pairsOutput);
             }
+
+            Debug.Log("Map Complete !");
         }
 
         /// <summary>
