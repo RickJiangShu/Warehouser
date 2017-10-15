@@ -93,9 +93,6 @@ public class Warehouser
                 if(recycler != null)
                     recycler.OnPullFromPool(args);
             }
-#if OBSERVER
-            Observer.recycleNumber--;
-#endif
             return instance;
         }
 
@@ -141,7 +138,6 @@ public class Warehouser
         ObjectPool.Push(name, instance);
 
 #if OBSERVER
-        Observer.recycleNumber++;
         Observer.recycleCount++;
 #endif
     }
@@ -165,6 +161,20 @@ public class Warehouser
 #endif
     }
 
+    /// <summary>
+    /// 清除掉对象池中的对象
+    /// </summary>
+    public static void Clear()
+    {
+        foreach (List<Object> objects in ObjectPool.objectsOfPool.Values)
+        {
+            foreach (Object obj in objects)
+            {
+                Destroy(obj);
+            }
+            objects.Clear();
+        }
+    }
     
     /// <summary>
     /// 获取Asset

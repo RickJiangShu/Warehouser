@@ -18,7 +18,6 @@ namespace Plugins.Warehouser.Editor
         //数量
         public static int instanceNumber = 0;
         public static int gameObjectNumber = 0;
-        public static int recycleNumber = 0;//
 
         //函数调用计数
         public static int getInstanceCount = 0;
@@ -53,7 +52,6 @@ namespace Plugins.Warehouser.Editor
                 GUILayout.TextField(
                 "instance number: " + instanceNumber +
                 "\ngame object number: " + gameObjectNumber +
-                "\nrecycle number: " + recycleNumber +
                 "\n\nget instance count: " + getInstanceCount +
                 "\nget asset count: " + getAssetCount +
                 "\nrecycle count: " + recycleCount +

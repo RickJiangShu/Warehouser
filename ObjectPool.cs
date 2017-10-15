@@ -4,17 +4,17 @@
  * Email:   rickjiangshu@gmail.com
  * Follow:  https://github.com/RickJiangShu
  */
-using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// 通用对象池
 /// </summary>
 public class ObjectPool
 {
-    private static Dictionary<string, List<object>> objectsOfPool = new Dictionary<string,List<object>>();
+    public static Dictionary<string, List<Object>> objectsOfPool = new Dictionary<string, List<Object>>();
 
-    public static void Push(string poolKey, object obj)
+    public static void Push(string poolKey, Object obj)
     {
         if(objectsOfPool.ContainsKey(poolKey))
         {
@@ -22,13 +22,13 @@ public class ObjectPool
         }
         else
         {
-            objectsOfPool.Add(poolKey, new List<object>() { obj });
+            objectsOfPool.Add(poolKey, new List<Object>() { obj });
         }
     }
 
     public static object Pull(string poolKey)
     {
-        List<object> objects;
+        List<Object> objects;
         if (objectsOfPool.TryGetValue(poolKey, out objects) && objects.Count > 0)
         {
             object obj = objects[0];
