@@ -12,7 +12,7 @@ using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 using Plugins.Warehouser;
 
-#if UNITY_EDITOR
+#if OBSERVER
 using Plugins.Warehouser.Editor;
 #endif
 
@@ -52,7 +52,7 @@ public class Warehouser
         //侦听图集引用请求
         SpriteAtlasManager.atlasRequested += AtlasRequest;
 
-#if UNITY_EDITOR
+#if OBSERVER
         GameObject observer = new GameObject("Observer");
         observer.AddComponent<Observer>();
         Object.DontDestroyOnLoad(observer);
@@ -93,7 +93,7 @@ public class Warehouser
                 if(recycler != null)
                     recycler.OnPullFromPool(args);
             }
-#if UNITY_EDITOR
+#if OBSERVER
             Observer.recycleNumber--;
 #endif
             return instance;
@@ -112,12 +112,12 @@ public class Warehouser
             if (initializer != null)
                 initializer.Initialize(args);
 
-#if UNITY_EDITOR
+#if OBSERVER
             Observer.gameObjectNumber++;
 #endif
         }
 
-#if UNITY_EDITOR
+#if OBSERVER
         Observer.getInstanceCount++;
         Observer.instanceNumber++;
 #endif
@@ -140,7 +140,7 @@ public class Warehouser
         }
         ObjectPool.Push(name, instance);
 
-#if UNITY_EDITOR
+#if OBSERVER
         Observer.recycleNumber++;
         Observer.recycleCount++;
 #endif
@@ -154,7 +154,7 @@ public class Warehouser
     {
         Object.Destroy(instance, delay);
 
-#if UNITY_EDITOR
+#if OBSERVER
         Observer.destroyCount++;
         Observer.instanceNumber--;
 
@@ -245,7 +245,7 @@ public class Warehouser
         }
 #endif
 
-#if UNITY_EDITOR
+#if OBSERVER
         Observer.getAssetCount++;
 #endif
         return (T)asset;
@@ -297,7 +297,7 @@ public class Warehouser
             Resources.UnloadAsset(asset);
         }
 
-#if UNITY_EDITOR
+#if OBSERVER
         Observer.unloadAssetCount++;
 #endif
     }
