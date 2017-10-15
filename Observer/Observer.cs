@@ -17,7 +17,6 @@ namespace Plugins.Warehouser.Editor
     {
         //数量
         public static int instanceNumber = 0;
-        public static int gameObjectNumber = 0;
 
         //函数调用计数
         public static int getInstanceCount = 0;
@@ -49,9 +48,16 @@ namespace Plugins.Warehouser.Editor
 
             if (isShow)
             {
+                //计算对象池中对象数量
+                int objectCountOfPool = 0;
+                foreach (List<Object> objs in ObjectPool.objectsOfPool.Values)
+                {
+                    objectCountOfPool += objs.Count;
+                }
+
                 GUILayout.TextField(
-                "instance number: " + instanceNumber +
-                "\ngame object number: " + gameObjectNumber +
+                "in scene: " + instanceNumber +
+                "\nin pool:" + objectCountOfPool +
                 "\n\nget instance count: " + getInstanceCount +
                 "\nget asset count: " + getAssetCount +
                 "\nrecycle count: " + recycleCount +

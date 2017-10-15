@@ -108,10 +108,6 @@ public class Warehouser
             //如果有初始化组件，则初始化
             if (initializer != null)
                 initializer.Initialize(args);
-
-#if OBSERVER
-            Observer.gameObjectNumber++;
-#endif
         }
 
 #if OBSERVER
@@ -153,11 +149,6 @@ public class Warehouser
 #if OBSERVER
         Observer.destroyCount++;
         Observer.instanceNumber--;
-
-        if (instance is GameObject)
-        {
-            Observer.gameObjectNumber--;
-        }
 #endif
     }
 
