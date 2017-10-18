@@ -35,7 +35,7 @@ public class Warehouser
     /// <summary>
     /// 对象池中的所有对象
     /// </summary>
-    private static Dictionary<string, List<GameObject>> objectsOfPool;
+    public static Dictionary<string, List<GameObject>> objectsOfPool;
 
     /// <summary>
     /// 启动（运行时必先调用）
@@ -119,16 +119,18 @@ public class Warehouser
     /// <param name="instance"></param>
     public static void Recycle(GameObject instance)
     {
-        instance.SetActive(false);
-
         if(objectsOfPool.ContainsKey(instance.name))
         {
+            if (objectsOfPool[instance.name].Contains(instance))//添加已经存在于对象池中的对象
+                return;
+
             objectsOfPool[instance.name].Add(instance);
         }
         else
         {
             objectsOfPool.Add(instance.name, new List<GameObject>() { instance });
         }
+        instance.SetActive(false);
     }
 
     /// <summary>
@@ -143,6 +145,33 @@ public class Warehouser
                 GameObject.Destroy(obj);
             }
             objects.Clear();
+        }
+    }
+
+    public static void Clear(string name)
+    {
+        if (objectsOfPool.ContainsKey(name))
+        {
+            foreach (GameObject obj in objectsOfPool[name])
+            {
+                GameObject.Destroy(obj);
+            }
+            objectsOfPool[name].Clear();
+        }
+    }
+
+    public static void ClearWithTag(string tag)
+    {
+        foreach (List<GameObject> objects in objectsOfPool.Values)
+        {
+            for (int i = objects.Count - 1; i >= 0; i--)
+            {
+                if (objects[i].tag == tag)
+                {
+                    GameObject.Destroy(objects[i]);
+                    objects.RemoveAt(i);
+                }
+            }
         }
     }
     
@@ -283,4 +312,3 @@ public class Warehouser
         }
     }
 }
-

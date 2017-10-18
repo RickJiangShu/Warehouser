@@ -15,43 +15,27 @@ namespace Plugins.Warehouser.Observer
     /// </summary>
     public class ObserverWindow : MonoBehaviour
     {
-        /// <summary>
-        /// 是否显示
-        /// </summary>
-        private bool isShow = false;
-
         public void OnGUI()
         {
-            if (GUILayout.Button("Observer"))
+            int allCount = Observer.allObjects.Count;
+            int poolCount = 0;
+            for(int i = 0,l = allCount;i<l;i++)
             {
-                isShow = !isShow;
-            }
-
-            if (isShow)
-            {
-                GUILayout.TextField(
-                    "all: " + Observer.allObjects.Count
-                    );
-
-                //计算对象池中对象数量
-                /*
-                int objectCountOfPool = 0;
-                foreach (List<Object> objs in ObjectPool.objectsOfPool.Values)
+                GameObject go = Observer.allObjects[i];
+                if (
+                    global::Warehouser.objectsOfPool.ContainsKey(go.name) &&
+                    global::Warehouser.objectsOfPool[go.name].Contains(go)
+                    )
                 {
-                    objectCountOfPool += objs.Count;
+                    poolCount++;
                 }
-
-                GUILayout.TextField(
-                "in scene: " + instanceNumber +
-                "\nin pool:" + objectCountOfPool +
-                "\n\nget instance count: " + getInstanceCount +
-                "\nget asset count: " + getAssetCount +
-                "\nrecycle count: " + recycleCount +
-                "\ndestroy count: " + destroyCount +
-                "\nunload asset count: " + unloadAssetCount
-                );
-                 */
             }
+
+            GUILayout.TextField(
+                    string.Format("objects: {0} / {1} / {2}", allCount - poolCount, poolCount, allCount) + 
+                    "\n  Hero1 :" + 12
+                    );
+            
         }
     }
 }

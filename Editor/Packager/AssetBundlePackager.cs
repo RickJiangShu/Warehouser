@@ -192,7 +192,7 @@ namespace Plugins.Warehouser.Editor
                 return;
 
             importer.assetBundleName = bundleName;
-            Debug.Log("Pack: " + bundleName);
+            Debug.Log("Pack: " + file.Name + " to " + bundleName);
         }
 
 
