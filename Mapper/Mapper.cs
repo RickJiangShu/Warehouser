@@ -37,7 +37,7 @@ namespace Plugins.Warehouser
         /// <param name="name">路径</param>
         /// <param name="path">完整路径</param>
         /// <returns></returns>
-        public static bool TryGetPath(string name, out Pair pair)
+        public static bool TryGetPath(string name, out string path)
         {
             return mapOfPair.TryGetValue(name, out pair);
         }

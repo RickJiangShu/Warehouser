@@ -14,6 +14,7 @@ using Plugins.Warehouser;
 
 #if OBSERVER
 using Plugins.Warehouser.Observer;
+using System.IO;
 #endif
 
 /// <summary>
@@ -21,6 +22,11 @@ using Plugins.Warehouser.Observer;
 /// </summary>
 public class Warehouser
 {
+    /// <summary>
+    /// AssetBundle 后缀名
+    /// </summary>
+    public const string EXTENSION = ".ab";
+
     /// <summary>
     /// AssetBundle 依赖文件
     /// </summary>
@@ -36,30 +42,30 @@ public class Warehouser
     /// </summary>
     private static Dictionary<string, List<GameObject>> objectsOfPool;
 
-#if OBSERVER
-    /// <summary>
-    /// 场景中的所有对象
-    /// </summary>
-    private static Dictionary<string, List<GameObject>> objectOfScene;
-#endif
-
     /// <summary>
     /// 启动（运行时必先调用）
     /// </summary>
     public static void Start()
     {
+        //初始化静态变量
+        assetBundles = new Dictionary<string, AssetBundle>();
+        objectsOfPool = new Dictionary<string,List<GameObject>>();
+
         //加载Manifeset
         AssetBundle manifesetBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/StreamingAssets");
         manifest = manifesetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
         manifesetBundle.Unload(false);
 
         //加载PathPairs
+        AssetBundle pairsBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/StreamingAssets/pairs.ab");
+        Pairs pairs = pairsBundle.LoadAsset<Pairs>("Pairs");
+        Mapper.Initialize(pairs);
+        pairsBundle.Unload(true);
+
         string path = WarehouserUtils.ConvertUnixPath(Constants.PATH_PAIRS_PATH, "Resources", false, false);
         Pairs pairs = Resources.Load<Pairs>(path);
         Mapper.Initialize(pairs);
 
-        //初始化字典
-        assetBundles = new Dictionary<string, AssetBundle>();
 
         //侦听图集引用请求
         SpriteAtlasManager.atlasRequested += AtlasRequest;
@@ -161,39 +167,33 @@ public class Warehouser
         Object asset;
 
         //获取路径
-        Pair pair;
-        if (!Mapper.TryGetPath(name, out pair))
+        string path;
+        if (!Mapper.TryGetPath(name, out path))
         {
             Debug.LogError("找不到路径：" + name);
             return null;
         }
 
-        //加载
-        switch (pair.tagType)
+        //AssetBundle 加载
+        if (Path.HasExtension(path))
         {
-            case PairTagType.RESOURCES_PATH:
-                asset = Resources.Load<T>(pair.tag);
-                break;
-            case PairTagType.ASSETBUNDLE_NAME:
-                AssetBundle bundle;
-                if (assetBundles.TryGetValue(pair.tag, out bundle))
-                {
-                    asset = bundle.LoadAsset<T>(name);
-                }
-                else
-                {
-                    LoadDependencies(pair.tag);//加载依赖
-                    bundle = LoadAndCacheAssetBundle(pair.tag);
-                    asset = bundle.LoadAsset<T>(name);
-                }
-                break;
-            case PairTagType.ATLAS_NAME:
-                SpriteAtlas atlas = GetAsset<SpriteAtlas>(pair.tag);
-                asset = atlas.GetSprite(name);
-                break;
-            default:
-                asset = null;
-                break;
+            AssetBundle bundle;
+            if (assetBundles.TryGetValue(path, out bundle))
+            {
+                asset = bundle.LoadAsset<T>(name);
+            }
+            else
+            {
+                LoadDependencies(path);//加载依赖
+                bundle = LoadAndCacheAssetBundle(path);
+                asset = bundle.LoadAsset<T>(name);
+            }
+        }
+        //图集加载
+        else
+        {
+            SpriteAtlas atlas = GetAsset<SpriteAtlas>(path);
+            asset = atlas.GetSprite(name);
         }
 
         if (asset == null)
@@ -291,60 +291,6 @@ public class Warehouser
             bundle.Unload(unloadAllLoadedObjects);
             assetBundles.Remove(assetBundleName);
         }
-    }
-
-    /// <summary>
-    /// GameObject对象池
-    /// </summary>
-    private class ObjectPool
-    {
-        private static Dictionary<string, Dictionary<string, List<GameObject>>> objects = new Dictionary<string,Dictionary<string,List<GameObject>>>();
-
-        public static void Push(GameObject go)
-        {
-            string tag = go.tag;
-            string name = go.name;
-            if (!objects.ContainsKey(tag))
-                objects.Add(tag, new Dictionary<string, List<GameObject>>());
-
-            if (!objects[tag].ContainsKey(name))
-                objects[tag].Add(name, new List<GameObject>());
-
-            go.SetActive(false);
-            objects[tag][name].Add(go);
-        }
-
-        public static void Pull(string name)
-        {
-        }
-
-        /*
-        public static Dictionary<string, List<Object>> objectsOfPool = new Dictionary<string, List<Object>>();
-
-        public static void Push(string poolKey, Object obj)
-        {
-            if (objectsOfPool.ContainsKey(poolKey))
-            {
-                objectsOfPool[poolKey].Add(obj);
-            }
-            else
-            {
-                objectsOfPool.Add(poolKey, new List<Object>() { obj });
-            }
-        }
-
-        public static object Pull(string poolKey)
-        {
-            List<Object> objects;
-            if (objectsOfPool.TryGetValue(poolKey, out objects) && objects.Count > 0)
-            {
-                object obj = objects[0];
-                objects.RemoveAt(0);
-                return obj;
-            }
-            return null;
-        }
-         */
     }
 }
 
