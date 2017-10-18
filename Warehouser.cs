@@ -13,7 +13,7 @@ using Object = UnityEngine.Object;
 using Plugins.Warehouser;
 
 #if OBSERVER
-using Plugins.Warehouser.Editor;
+using Plugins.Warehouser.Observer;
 #endif
 
 /// <summary>
@@ -35,6 +35,13 @@ public class Warehouser
     /// 对象池中的所有对象
     /// </summary>
     private static Dictionary<string, List<GameObject>> objectsOfPool;
+
+#if OBSERVER
+    /// <summary>
+    /// 场景中的所有对象
+    /// </summary>
+    private static Dictionary<string, List<GameObject>> objectOfScene;
+#endif
 
     /// <summary>
     /// 启动（运行时必先调用）
@@ -59,7 +66,7 @@ public class Warehouser
 
 #if OBSERVER
         GameObject observer = new GameObject("Observer");
-        observer.AddComponent<Observer>();
+        observer.AddComponent<ObserverWindow>();
         Object.DontDestroyOnLoad(observer);
 #endif
     }
@@ -90,6 +97,7 @@ public class Warehouser
             do
             {
                 instance = objectsOfPool[name][0];
+                instance.SetActive(true);
                 objectsOfPool[name].RemoveAt(0);
             }
             while (instance == null);
@@ -102,6 +110,10 @@ public class Warehouser
         GameObject asset = GetAsset<GameObject>(name);
         instance = GameObject.Instantiate(asset);
         instance.name = name;//name对于Warehouser是有意义的
+
+#if OBSERVER
+        instance.AddComponent<Observer>();
+#endif
         return instance;
     }
         
@@ -121,8 +133,9 @@ public class Warehouser
         {
             objectsOfPool.Add(instance.name, new List<GameObject>() { instance });
         }
+
 #if OBSERVER
-        Observer.recycleCount++;
+        ObserverWindow.recycleCount++;
 #endif
     }
 
@@ -221,7 +234,7 @@ public class Warehouser
 #endif
 
 #if OBSERVER
-        Observer.getAssetCount++;
+        ObserverWindow.getAssetCount++;
 #endif
         return (T)asset;
     }
@@ -273,7 +286,7 @@ public class Warehouser
         }
 
 #if OBSERVER
-        Observer.unloadAssetCount++;
+        ObserverWindow.unloadAssetCount++;
 #endif
     }
 
