@@ -89,6 +89,10 @@ namespace Plugins.Warehouser.Editor
                     Directory.CreateDirectory(directoryPath);
                 }
                 AssetDatabase.CreateAsset(pathMap, pairsOutput);
+
+                //设置BundleName
+                AssetImporter pairsImporter = AssetImporter.GetAtPath(pairsOutput);
+                pairsImporter.assetBundleName = "pairs.ab";
             }
 
             Debug.Log("Map Complete !");
@@ -118,7 +122,6 @@ namespace Plugins.Warehouser.Editor
             List<Pair> pairs = new List<Pair>();
             if (Directory.Exists(path))
             {
-                bool inResources = WarehouserUtils.IsResource(path);
                 DirectoryInfo directory = new DirectoryInfo(path);
                 FileInfo[] files = directory.GetFiles("*.*", SearchOption.AllDirectories);
                 foreach (FileInfo file in files)
@@ -158,15 +161,7 @@ namespace Plugins.Warehouser.Editor
 
             string path = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", true, true);
 
-            Pair pair;
-            if (inResources)
-            {
-                pair = GetPairByResourceFile(file);
-            }
-            else
-            {
-                pair = GetPairByAssetBundleFile(file);
-            }
+            Pair pair = GetPairByAssetBundleFile(file);
 
             if (pair != null)
                 pairs.Add(pair);
@@ -187,24 +182,13 @@ namespace Plugins.Warehouser.Editor
                 foreach (Sprite sp in sprites)
                 {
                     string name = sp.texture.name;
-                    pairs.Add(new Pair(name, atlas.tag, PairTagType.ATLAS_NAME));
+                    pairs.Add(new Pair(name, atlas.tag));
                 }
             }
 
             return pairs;
         }
 
-        /// <summary>
-        /// 通过Reousrce文件获取路径对
-        /// </summary>
-        /// <param name="file"></param>
-        /// <returns></returns>
-        private static Pair GetPairByResourceFile(FileInfo file)
-        {
-            string name = file.Name.Replace(file.Extension, "");
-            string path = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", false, true);
-            return new Pair(name, path, PairTagType.RESOURCES_PATH);
-        }
 
         /// <summary>
         /// 从AssetBundle文件得出路径对
@@ -220,7 +204,7 @@ namespace Plugins.Warehouser.Editor
 
             string name = Path.GetFileNameWithoutExtension(file.Name);
             string path = importer.assetBundleName;
-            return new Pair(name, path, PairTagType.ASSETBUNDLE_NAME);
+            return new Pair(name, path);
         }
     }
 }

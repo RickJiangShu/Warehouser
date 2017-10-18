@@ -23,11 +23,6 @@ using System.IO;
 public class Warehouser
 {
     /// <summary>
-    /// AssetBundle 后缀名
-    /// </summary>
-    public const string EXTENSION = ".ab";
-
-    /// <summary>
     /// AssetBundle 依赖文件
     /// </summary>
     private static AssetBundleManifest manifest;
@@ -57,7 +52,7 @@ public class Warehouser
         manifesetBundle.Unload(false);
 
         //加载PathPairs
-        AssetBundle pairsBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/StreamingAssets/pairs.ab");
+        AssetBundle pairsBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/pairs.ab");
         Pairs pairs = pairsBundle.LoadAsset<Pairs>("Pairs");
         Mapper.Initialize(pairs);
         pairsBundle.Unload(true);

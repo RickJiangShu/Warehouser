@@ -17,11 +17,6 @@ namespace Plugins.Warehouser.Editor
     public class AssetBundlePackager : ScriptableObject
     {
         /// <summary>
-        /// 包扩展名
-        /// </summary>
-        private const string EXTENSION = ".ab";
-
-        /// <summary>
         /// 打包
         /// </summary>
         /// <param name="packages"></param>
@@ -251,12 +246,14 @@ namespace Plugins.Warehouser.Editor
                     int length = directoryPath.Length;
                     int startIndex = filePath.IndexOf(directoryPath) + (directoryPath[length - 1] == '/' ? length : length + 1);
                     string relativePath = filePath.Substring(startIndex);
-                    bundleName = packageName + Path.ChangeExtension(relativePath, EXTENSION);
+                    
+                    
+                    bundleName = packageName + Path.ChangeExtension(relativePath, WarehouserWindow.EXTENSION);
                 }
                 else
                 {
                     string fileName = Path.GetFileName(fileFullName);
-                    bundleName = packageName + Path.ChangeExtension(fileName, EXTENSION);
+                    bundleName = packageName + Path.ChangeExtension(fileName, WarehouserWindow.EXTENSION);
                 }
             }
             return bundleName.ToLower();

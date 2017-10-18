@@ -19,6 +19,11 @@ namespace Plugins.Warehouser.Editor
     public class WarehouserWindow : EditorWindow
     {
         /// <summary>
+        /// AssetBundle 后缀名
+        /// </summary>
+        public const string EXTENSION = ".ab";
+
+        /// <summary>
         /// 配置文件路径
         /// </summary>
         public const string SETTING_PATH = "Assets/Warehouse/Setting.json";
@@ -43,9 +48,9 @@ namespace Plugins.Warehouser.Editor
         {
             return EditorWindow.GetWindow<WarehouserWindow>("Warehouser");
         }
+
         public void OnEnable()
         {
-            
             LoadSetting();  
         }
 
@@ -88,7 +93,7 @@ namespace Plugins.Warehouser.Editor
 
             if (GUILayout.Button("Map"))
             {
-                MapperEditor.Map(setting.mapPaths.ToArray(), Constants.PATH_PAIRS_PATH);
+                MapperEditor.Map(setting.mapPaths.ToArray(), PAIRS_PATH);
             }
 
             if (GUILayout.Button("Build Asset Bundles"))
@@ -112,9 +117,9 @@ namespace Plugins.Warehouser.Editor
         /// </summary>
         private void LoadSetting()
         {
-            if (File.Exists(Constants.SETTING_PATH))
+            if (File.Exists(SETTING_PATH))
             {
-                string content = File.ReadAllText(Constants.SETTING_PATH);
+                string content = File.ReadAllText(SETTING_PATH);
                 setting = JsonUtility.FromJson<Setting>(content);
             }
             else
@@ -131,12 +136,12 @@ namespace Plugins.Warehouser.Editor
         {
             string json = JsonUtility.ToJson(setting, true);
             FileStream fileStream;
-            if (!File.Exists(Constants.SETTING_PATH))
+            if (!File.Exists(SETTING_PATH))
             {
-                fileStream = File.Create(Constants.SETTING_PATH);
+                fileStream = File.Create(SETTING_PATH);
                 fileStream.Close();
             }
-            File.WriteAllText(Constants.SETTING_PATH, json);
+            File.WriteAllText(SETTING_PATH, json);
             AssetDatabase.Refresh();
         }
 
