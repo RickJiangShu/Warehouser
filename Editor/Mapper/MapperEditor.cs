@@ -157,7 +157,6 @@ namespace Plugins.Warehouser.Editor
                 return pairs;
 
             string path = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", true, true);
-            bool inResources = WarehouserUtils.IsResource(path);
 
             Pair pair;
             if (inResources)

@@ -13,21 +13,12 @@ namespace Plugins.Warehouser
     public class Pair
     {
         public string name;
-        public string tag;//tag 通常是path，但如果是sprite则是atlasName
-        public byte tagType;
+        public string path;//带后缀的为AssetBundle，不带后缀的为Sprite Atlas名
 
-        public Pair(string name, string tag, byte tagType)
+        public Pair(string name, string path)
         {
             this.name = name;
-            this.tag = tag;
-            this.tagType = tagType;
+            this.path = path;
         }
-    }
-
-    public class PairTagType
-    {
-        public const byte RESOURCES_PATH = 0;
-        public const byte ASSETBUNDLE_NAME = 1;
-        public const byte ATLAS_NAME = 2;
     }
 }

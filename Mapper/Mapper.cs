@@ -15,7 +15,7 @@ namespace Plugins.Warehouser
     /// </summary>
     public class Mapper
     {
-        private static Dictionary<string, Pair> mapOfPair;
+        private static Dictionary<string, string> mapOfPaths;
 
         /// <summary>
         /// 初始化键值对
@@ -23,11 +23,11 @@ namespace Plugins.Warehouser
         /// <param name="pairs"></param>
         public static void Initialize(Pairs pairs)
         {
-            mapOfPair = new Dictionary<string, Pair>();
+            mapOfPaths = new Dictionary<string, string>();
             for (int i = 0, c = pairs.Length; i < c; i++)
             {
                 Pair pair = pairs[i];
-                mapOfPair.Add(pair.name, pair);
+                mapOfPaths.Add(pair.name, pair.path);
             }
         }
 
@@ -39,7 +39,7 @@ namespace Plugins.Warehouser
         /// <returns></returns>
         public static bool TryGetPath(string name, out string path)
         {
-            return mapOfPair.TryGetValue(name, out pair);
+            return mapOfPaths.TryGetValue(name, out path);
         }
     }
 }

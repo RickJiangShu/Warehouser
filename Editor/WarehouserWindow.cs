@@ -19,6 +19,16 @@ namespace Plugins.Warehouser.Editor
     public class WarehouserWindow : EditorWindow
     {
         /// <summary>
+        /// 配置文件路径
+        /// </summary>
+        public const string SETTING_PATH = "Assets/Warehouse/Setting.json";
+
+        /// <summary>
+        /// Pairs路径
+        /// </summary>
+        public const string PAIRS_PATH = "Assets/Warehouse/Pairs.asset";
+
+        /// <summary>
         /// 配置文件
         /// </summary>
         public Setting setting;

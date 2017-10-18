@@ -62,11 +62,6 @@ public class Warehouser
         Mapper.Initialize(pairs);
         pairsBundle.Unload(true);
 
-        string path = WarehouserUtils.ConvertUnixPath(Constants.PATH_PAIRS_PATH, "Resources", false, false);
-        Pairs pairs = Resources.Load<Pairs>(path);
-        Mapper.Initialize(pairs);
-
-
         //侦听图集引用请求
         SpriteAtlasManager.atlasRequested += AtlasRequest;
 

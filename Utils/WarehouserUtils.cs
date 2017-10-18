@@ -13,16 +13,6 @@ namespace Plugins.Warehouser
     /// </summary>
     public class WarehouserUtils
     {
-        /// <summary>
-        /// 是否在Resources目录下
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        public static bool IsResource(string path)
-        {
-            return path.Contains("Resources");
-        }
-
         public static bool IsDirectory(string path)
         {
             FileAttributes attr = File.GetAttributes(path);
