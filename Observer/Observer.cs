@@ -49,6 +49,7 @@ namespace Plugins.Warehouser.Editor
             if (isShow)
             {
                 //计算对象池中对象数量
+                /*
                 int objectCountOfPool = 0;
                 foreach (List<Object> objs in ObjectPool.objectsOfPool.Values)
                 {
@@ -64,6 +65,7 @@ namespace Plugins.Warehouser.Editor
                 "\ndestroy count: " + destroyCount +
                 "\nunload asset count: " + unloadAssetCount
                 );
+                 */
             }
         }
     }

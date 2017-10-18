@@ -32,6 +32,6 @@ public class DelayRecycler : MonoBehaviour, IRecycler
 
     public void Recycle()
     {
-        Warehouser.Recycle(name, gameObject);
+        Warehouser.Recycle(gameObject);
     }
 }

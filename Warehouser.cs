@@ -32,6 +32,11 @@ public class Warehouser
     private static Dictionary<string, AssetBundle> assetBundles;
 
     /// <summary>
+    /// 对象池中的所有对象
+    /// </summary>
+    private static Dictionary<string, List<GameObject>> objectsOfPool;
+
+    /// <summary>
     /// 启动（运行时必先调用）
     /// </summary>
     public static void Setup()
@@ -69,52 +74,34 @@ public class Warehouser
     }
 
 
-    public static GameObject GetInstance(string name, params object[] initArags)
-    {
-        return GetInstance<GameObject>(name, initArags);
-    }
-
     /// <summary>
     /// 获取资源的实例
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static T GetInstance<T>(string name, params object[] args) where T : Object
+    public static GameObject GetInstance(string name)
     {
-        T instance = (T)ObjectPool.Pull(name);
-
+        GameObject instance;
         //从对象池取
-        if (instance != null)
+        if (objectsOfPool.ContainsKey(name) && objectsOfPool[name].Count > 0)
         {
-            if (instance is GameObject)
+            //考虑到对象池中的对象已被销毁的情况
+            do
             {
-                IRecycler recycler = ((GameObject)(Object)instance).GetComponent<IRecycler>();
-                if(recycler != null)
-                    recycler.OnPullFromPool(args);
+                instance = objectsOfPool[name][0];
+                objectsOfPool[name].RemoveAt(0);
             }
-            return instance;
+            while (instance == null);
+
+            if(instance != null)
+                return instance;
         }
 
         //实例化
-        T asset = GetAsset<T>(name);
-
-        instance = UnityEngine.Object.Instantiate<T>(asset);
-        
-        if (instance is GameObject)
-        {
-            IInitializer initializer = ((GameObject)(Object)instance).GetComponent<IInitializer>();
-
-            //如果有初始化组件，则初始化
-            if (initializer != null)
-                initializer.Initialize(args);
-        }
-
-#if OBSERVER
-        Observer.getInstanceCount++;
-        Observer.instanceNumber++;
-#endif
-
+        GameObject asset = GetAsset<GameObject>(name);
+        instance = GameObject.Instantiate(asset);
+        instance.name = name;//name对于Warehouser是有意义的
         return instance;
     }
         
@@ -122,33 +109,20 @@ public class Warehouser
     /// 回收实例
     /// </summary>
     /// <param name="instance"></param>
-    public static void Recycle(string name, Object instance)
+    public static void Recycle(GameObject instance)
     {
-        if (instance is GameObject)
-        {
-            //回收处理
-            IRecycler recycler = ((GameObject)instance).GetComponent<IRecycler>();
-            if (recycler != null)
-                recycler.OnPushToPool();
-        }
-        ObjectPool.Push(name, instance);
+        instance.SetActive(false);
 
+        if(objectsOfPool.ContainsKey(instance.name))
+        {
+            objectsOfPool[instance.name].Add(instance);
+        }
+        else
+        {
+            objectsOfPool.Add(instance.name, new List<GameObject>() { instance });
+        }
 #if OBSERVER
         Observer.recycleCount++;
-#endif
-    }
-
-    /// <summary>
-    /// 销毁实例
-    /// </summary>
-    /// <param name="instance"></param>
-    public static void Destroy(Object instance, float delay = 0.0f)
-    {
-        Object.Destroy(instance, delay);
-
-#if OBSERVER
-        Observer.destroyCount++;
-        Observer.instanceNumber--;
 #endif
     }
 
@@ -157,11 +131,11 @@ public class Warehouser
     /// </summary>
     public static void Clear()
     {
-        foreach (List<Object> objects in ObjectPool.objectsOfPool.Values)
+        foreach (List<GameObject> objects in objectsOfPool.Values)
         {
-            foreach (Object obj in objects)
+            foreach (GameObject obj in objects)
             {
-                Destroy(obj);
+                GameObject.Destroy(obj);
             }
             objects.Clear();
         }
@@ -318,4 +292,58 @@ public class Warehouser
         }
     }
 
+    /// <summary>
+    /// GameObject对象池
+    /// </summary>
+    private class ObjectPool
+    {
+        private static Dictionary<string, Dictionary<string, List<GameObject>>> objects = new Dictionary<string,Dictionary<string,List<GameObject>>>();
+
+        public static void Push(GameObject go)
+        {
+            string tag = go.tag;
+            string name = go.name;
+            if (!objects.ContainsKey(tag))
+                objects.Add(tag, new Dictionary<string, List<GameObject>>());
+
+            if (!objects[tag].ContainsKey(name))
+                objects[tag].Add(name, new List<GameObject>());
+
+            go.SetActive(false);
+            objects[tag][name].Add(go);
+        }
+
+        public static void Pull(string name)
+        {
+        }
+
+        /*
+        public static Dictionary<string, List<Object>> objectsOfPool = new Dictionary<string, List<Object>>();
+
+        public static void Push(string poolKey, Object obj)
+        {
+            if (objectsOfPool.ContainsKey(poolKey))
+            {
+                objectsOfPool[poolKey].Add(obj);
+            }
+            else
+            {
+                objectsOfPool.Add(poolKey, new List<Object>() { obj });
+            }
+        }
+
+        public static object Pull(string poolKey)
+        {
+            List<Object> objects;
+            if (objectsOfPool.TryGetValue(poolKey, out objects) && objects.Count > 0)
+            {
+                object obj = objects[0];
+                objects.RemoveAt(0);
+                return obj;
+            }
+            return null;
+        }
+         */
+    }
 }
+
