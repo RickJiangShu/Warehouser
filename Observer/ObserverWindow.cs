@@ -15,16 +15,9 @@ namespace Plugins.Warehouser.Observer
     /// </summary>
     public class ObserverWindow : MonoBehaviour
     {
-        //数量
-        public static int instanceNumber = 0;
-
-        //函数调用计数
-        public static int getInstanceCount = 0;
-        public static int recycleCount = 0;
-        public static int getAssetCount = 0;
-        public static int destroyCount = 0;//销毁计数
-        public static int unloadAssetCount = 0;
-
+        /// <summary>
+        /// 是否显示
+        /// </summary>
         private bool isShow = false;
 
         public void OnGUI()
@@ -36,6 +29,10 @@ namespace Plugins.Warehouser.Observer
 
             if (isShow)
             {
+                GUILayout.TextField(
+                    "all: " + Observer.allObjects.Count
+                    );
+
                 //计算对象池中对象数量
                 /*
                 int objectCountOfPool = 0;

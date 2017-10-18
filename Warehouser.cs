@@ -46,7 +46,7 @@ public class Warehouser
     /// <summary>
     /// 启动（运行时必先调用）
     /// </summary>
-    public static void Setup()
+    public static void Start()
     {
         //加载Manifeset
         AssetBundle manifesetBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/StreamingAssets");
@@ -133,10 +133,6 @@ public class Warehouser
         {
             objectsOfPool.Add(instance.name, new List<GameObject>() { instance });
         }
-
-#if OBSERVER
-        ObserverWindow.recycleCount++;
-#endif
     }
 
     /// <summary>
@@ -232,10 +228,6 @@ public class Warehouser
             mat.shader = Shader.Find(shaderName);
         }
 #endif
-
-#if OBSERVER
-        ObserverWindow.getAssetCount++;
-#endif
         return (T)asset;
     }
 
@@ -284,10 +276,6 @@ public class Warehouser
         {
             Resources.UnloadAsset(asset);
         }
-
-#if OBSERVER
-        ObserverWindow.unloadAssetCount++;
-#endif
     }
 
     /// <summary>
