@@ -32,8 +32,7 @@ namespace Plugins.Warehouser.Observer
             }
 
             GUILayout.TextField(
-                    string.Format("objects: {0} / {1} / {2}", allCount - poolCount, poolCount, allCount) + 
-                    "\n  Hero1 :" + 12
+                    string.Format("objects: {0} / {1} / {2}", allCount - poolCount, poolCount, allCount)
                     );
             
         }

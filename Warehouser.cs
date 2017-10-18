@@ -174,7 +174,7 @@ public class Warehouser
             }
         }
     }
-    
+
     /// <summary>
     /// 获取Asset
     /// </summary>
