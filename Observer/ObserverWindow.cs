@@ -29,6 +29,7 @@ namespace Plugins.Warehouser.Observer
 
             if (visible)
             {
+                string format = "{0}/{1}/{2}\t{3}\n";
                 Dictionary<string, Counter> counters = new Dictionary<string, Counter>();
 
                 for (int i = 0, l = Observer.allObjects.Count; i < l; i++)
@@ -69,10 +70,10 @@ namespace Plugins.Warehouser.Observer
                     allTotal += c.total;
                     allPool += c.pool;
 
-                    info += string.Format("{0} / {1} / {2}\t{3}\n", c.alive, c.pool, c.total, c.name);
+                    info += string.Format(format, c.alive, c.pool, c.total, c.name);
                 }
 
-                info = string.Format("{0} / {1} / {2}\n", allTotal - allPool, allPool, allTotal) + info;
+                info = string.Format(format, allTotal - allPool, allPool, allTotal, "Total") + info;
                 info = info.Remove(info.Length - 1, 1);
 
                 GUILayout.TextField(info);

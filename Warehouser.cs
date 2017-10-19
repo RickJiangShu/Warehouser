@@ -116,20 +116,21 @@ public class Warehouser
     /// <returns></returns>
     public static GameObject Pull(string name)
     {
-        if (objectsOfPool.ContainsKey(name) && objectsOfPool[name].Count > 0)
+        if (objectsOfPool.ContainsKey(name))
         {
-            GameObject objOfPool;
             //考虑到对象池中的对象已被销毁的情况
-            do
+            GameObject objOfPool = null;
+            while (objectsOfPool[name].Count > 0)
             {
                 objOfPool = objectsOfPool[name][0];
-                objOfPool.SetActive(true);
                 objectsOfPool[name].RemoveAt(0);
-            }
-            while (objOfPool == null);
 
-            if (objOfPool != null)
-                return objOfPool;
+                if (!objOfPool.Equals(null))
+                {
+                    objOfPool.SetActive(true);
+                    return objOfPool;
+                }
+            }
         }
         return null;
     }
