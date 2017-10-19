@@ -77,17 +77,33 @@ public class Warehouser
     }
 
     /// <summary>
-    /// 获取资源的实例
+    /// 实例化
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
     /// <returns></returns>
-    public static GameObject GetInstance(string name)
+    public static GameObject Instantiate(string name)
     {
-        GameObject instance;
-        //从对象池取
+        GameObject asset = GetAsset<GameObject>(name);
+        GameObject instance = GameObject.Instantiate(asset);
+        instance.name = name;//name对于Warehouser是有意义的
+
+#if OBSERVER
+        instance.AddComponent<Observer>();
+#endif
+        return instance;
+    }
+
+    /// <summary>
+    /// 从对象池取
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static GameObject Pull(string name)
+    {
         if (objectsOfPool.ContainsKey(name) && objectsOfPool[name].Count > 0)
         {
+            GameObject instance;
             //考虑到对象池中的对象已被销毁的情况
             do
             {
@@ -97,26 +113,17 @@ public class Warehouser
             }
             while (instance == null);
 
-            if(instance != null)
+            if (instance != null)
                 return instance;
         }
-
-        //实例化
-        GameObject asset = GetAsset<GameObject>(name);
-        instance = GameObject.Instantiate(asset);
-        instance.name = name;//name对于Warehouser是有意义的
-
-#if OBSERVER
-        instance.AddComponent<Observer>();
-#endif
-        return instance;
+        return null;
     }
-        
+
     /// <summary>
     /// 回收实例
     /// </summary>
     /// <param name="instance"></param>
-    public static void Recycle(GameObject instance)
+    public static void Push(GameObject instance)
     {
         if(objectsOfPool.ContainsKey(instance.name))
         {
