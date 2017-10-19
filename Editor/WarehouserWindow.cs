@@ -26,12 +26,12 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// 配置文件路径
         /// </summary>
-        public const string SETTING_PATH = "Assets/Warehouse/Setting.json";
+        public const string SETTING_PATH = "Assets/WarehouserSetting.json";
 
         /// <summary>
         /// Pairs路径
         /// </summary>
-        public const string PAIRS_PATH = "Assets/Warehouse/Pairs.asset";
+        public const string PAIRS_PATH = "Assets/WarehouserPairs.asset";
 
         /// <summary>
         /// 配置文件

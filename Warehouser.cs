@@ -53,7 +53,7 @@ public class Warehouser
 
         //加载PathPairs
         AssetBundle pairsBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/pairs.ab");
-        Pairs pairs = pairsBundle.LoadAsset<Pairs>("Pairs");
+        Pairs pairs = pairsBundle.LoadAsset<Pairs>("WarehouserPairs");
         Mapper.Initialize(pairs);
         pairsBundle.Unload(true);
 
