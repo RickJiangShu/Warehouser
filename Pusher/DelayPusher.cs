@@ -18,7 +18,7 @@ public class DelayPusher : MonoBehaviour
 
     public void OnEnable()
     {
-        Invoke("Recycle", delay);
+        Invoke("Push", delay);
     }
 
     public void Push()

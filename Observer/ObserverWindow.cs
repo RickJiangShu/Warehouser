@@ -63,13 +63,16 @@ namespace Plugins.Warehouser.Observer
                 int allPool = 0;
                 foreach (Counter c in counterList)
                 {
+                    if (c.total < 2)
+                        continue;
+
                     allTotal += c.total;
                     allPool += c.pool;
 
-                    info += string.Format("{0}: {1} / {2} / {3}\n", c.name, c.alive, c.pool, c.total);
+                    info += string.Format("{0} / {1} / {2}\t{3}\n", c.alive, c.pool, c.total, c.name);
                 }
 
-                info = string.Format("total: {0} / {1} / {2}\n", allTotal - allPool, allPool, allTotal) + info;
+                info = string.Format("{0} / {1} / {2}\n", allTotal - allPool, allPool, allTotal) + info;
                 info = info.Remove(info.Length - 1, 1);
 
                 GUILayout.TextField(info);
