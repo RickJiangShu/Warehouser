@@ -77,6 +77,21 @@ public class Warehouser
     }
 
     /// <summary>
+    /// 如果对象池有便取，否则实例化一个新的对象
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static GameObject GetInstance(string name)
+    {
+        GameObject instance = Pull(name);
+        if (instance == null)
+        {
+            instance = Instantiate(name);
+        }
+        return instance;
+    }
+
+    /// <summary>
     /// 实例化
     /// </summary>
     /// <typeparam name="T"></typeparam>
@@ -103,18 +118,18 @@ public class Warehouser
     {
         if (objectsOfPool.ContainsKey(name) && objectsOfPool[name].Count > 0)
         {
-            GameObject instance;
+            GameObject objOfPool;
             //考虑到对象池中的对象已被销毁的情况
             do
             {
-                instance = objectsOfPool[name][0];
-                instance.SetActive(true);
+                objOfPool = objectsOfPool[name][0];
+                objOfPool.SetActive(true);
                 objectsOfPool[name].RemoveAt(0);
             }
-            while (instance == null);
+            while (objOfPool == null);
 
-            if (instance != null)
-                return instance;
+            if (objOfPool != null)
+                return objOfPool;
         }
         return null;
     }
