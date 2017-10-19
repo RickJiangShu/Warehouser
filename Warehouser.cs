@@ -5,6 +5,7 @@
  * Follow:  https://github.com/RickJiangShu
  */
 using System;
+using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -14,7 +15,6 @@ using Plugins.Warehouser;
 
 #if OBSERVER
 using Plugins.Warehouser.Observer;
-using System.IO;
 #endif
 
 /// <summary>
@@ -75,7 +75,6 @@ public class Warehouser
         SpriteAtlas atlas = GetAsset<SpriteAtlas>(name);
         callback(atlas);
     }
-
 
     /// <summary>
     /// 获取资源的实例
