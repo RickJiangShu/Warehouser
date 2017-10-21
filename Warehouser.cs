@@ -52,10 +52,9 @@ public class Warehouser
         manifesetBundle.Unload(false);
 
         //加载PathPairs
-        AssetBundle pairsBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/pairs.ab");
-        Pairs pairs = pairsBundle.LoadAsset<Pairs>("WarehouserPairs");
+        Pairs pairs = Resources.Load<Pairs>("WarehouserPairs");
         Mapper.Initialize(pairs);
-        pairsBundle.Unload(true);
+        Resources.UnloadAsset(pairs);
 
         //侦听图集引用请求
         SpriteAtlasManager.atlasRequested += AtlasRequest;

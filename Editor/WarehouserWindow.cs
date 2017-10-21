@@ -31,7 +31,7 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// Pairs路径
         /// </summary>
-        public const string PAIRS_PATH = "Assets/WarehouserPairs.asset";
+        public const string PAIRS_PATH = "Assets/Resources/WarehouserPairs.asset";
 
         /// <summary>
         /// 配置文件

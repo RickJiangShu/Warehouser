@@ -91,10 +91,6 @@ namespace Plugins.Warehouser.Editor
                 AssetDatabase.CreateAsset(pathMap, pairsOutput);
             }
 
-            //设置BundleName
-            AssetImporter pairsImporter = AssetImporter.GetAtPath(pairsOutput);
-            pairsImporter.assetBundleName = "pairs.ab";
-
             Debug.Log("Map Complete !");
         }
 
