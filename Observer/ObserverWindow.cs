@@ -20,6 +20,11 @@ namespace Plugins.Warehouser.Observer
         /// </summary>
         private bool visible = true;
 
+        /// <summary>
+        /// > 多少显示
+        /// </summary>
+        private int limitCount = 0; 
+
         public void OnGUI()
         {
             if (GUILayout.Button("Observer"))
@@ -64,7 +69,7 @@ namespace Plugins.Warehouser.Observer
                 int allPool = 0;
                 foreach (Counter c in counterList)
                 {
-                    if (c.total < 2)
+                    if (c.total <= limitCount)
                         continue;
 
                     allTotal += c.total;
@@ -76,7 +81,9 @@ namespace Plugins.Warehouser.Observer
                 info = string.Format(format, allTotal - allPool, allPool, allTotal, "Total") + info;
                 info = info.Remove(info.Length - 1, 1);
 
-                GUILayout.TextField(info);
+                limitCount = (int)GUILayout.HorizontalSlider(limitCount, 0, 10);
+
+                GUILayout.TextArea(info);
             }
         }
 
