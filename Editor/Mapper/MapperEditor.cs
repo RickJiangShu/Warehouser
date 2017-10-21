@@ -89,11 +89,11 @@ namespace Plugins.Warehouser.Editor
                     Directory.CreateDirectory(directoryPath);
                 }
                 AssetDatabase.CreateAsset(pathMap, pairsOutput);
-
-                //设置BundleName
-                AssetImporter pairsImporter = AssetImporter.GetAtPath(pairsOutput);
-                pairsImporter.assetBundleName = "pairs.ab";
             }
+
+            //设置BundleName
+            AssetImporter pairsImporter = AssetImporter.GetAtPath(pairsOutput);
+            pairsImporter.assetBundleName = "pairs.ab";
 
             Debug.Log("Map Complete !");
         }
