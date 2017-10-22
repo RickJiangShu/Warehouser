@@ -30,22 +30,18 @@ public class Warehouser
     /// <summary>
     /// 目前缓存的Bundle
     /// </summary>
-    private static Dictionary<string, AssetBundle> assetBundles;
+    private static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>();
 
     /// <summary>
     /// 对象池中的所有对象
     /// </summary>
-    public static Dictionary<string, List<GameObject>> objectsOfPool;
+    public static Dictionary<string, List<GameObject>> objectsOfPool = new Dictionary<string, List<GameObject>>();
 
     /// <summary>
     /// 启动（运行时必先调用）
     /// </summary>
     public static void Start()
     {
-        //初始化静态变量
-        assetBundles = new Dictionary<string, AssetBundle>();
-        objectsOfPool = new Dictionary<string,List<GameObject>>();
-
         //加载Manifeset
         AssetBundle manifesetBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/StreamingAssets");
         manifest = manifesetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
