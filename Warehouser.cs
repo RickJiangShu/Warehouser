@@ -98,8 +98,18 @@ public class Warehouser
     /// <returns></returns>
     public static GameObject Instantiate(string name)
     {
-        GameObject asset = GetAsset<GameObject>(name);
-        GameObject instance = GameObject.Instantiate(asset);
+        GameObject original = GetAsset<GameObject>(name);
+        return Instantiate(name, original);
+    }
+
+    /// <summary>
+    /// 用此方法替代 Object.Instantiate（用以监控游戏中的对象数量)
+    /// </summary>
+    /// <param name="original"></param>
+    /// <returns></returns>
+    public static GameObject Instantiate(string name, GameObject original)
+    {
+        GameObject instance = GameObject.Instantiate(original);
         instance.name = name;//name对于Warehouser是有意义的
 
 #if OBSERVER
