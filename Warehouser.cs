@@ -98,8 +98,8 @@ public class Warehouser
     /// <returns></returns>
     public static GameObject Instantiate(string name)
     {
-        GameObject asset = GetAsset<GameObject>(name);
-        GameObject instance = GameObject.Instantiate(asset);
+        GameObject original = GetAsset<GameObject>(name);
+        GameObject instance = GameObject.Instantiate(original);
         instance.name = name;//name对于Warehouser是有意义的
 
 #if OBSERVER
