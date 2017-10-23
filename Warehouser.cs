@@ -101,10 +101,6 @@ public class Warehouser
         GameObject asset = GetAsset<GameObject>(name);
         GameObject instance = GameObject.Instantiate(asset);
         instance.name = name;//name对于Warehouser是有意义的
-
-#if OBSERVER
-        instance.AddComponent<Observer>();
-#endif
         return instance;
     }
 
