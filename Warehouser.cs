@@ -35,7 +35,7 @@ public class Warehouser
     /// <summary>
     /// 对象池中的所有对象
     /// </summary>
-    public static Dictionary<string, List<GameObject>> objectsOfPool = new Dictionary<string, List<GameObject>>();
+    internal static Dictionary<string, List<GameObject>> objectsOfPool = new Dictionary<string, List<GameObject>>();
 
     /// <summary>
     /// 启动（运行时必先调用）
