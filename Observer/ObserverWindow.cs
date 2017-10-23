@@ -18,7 +18,7 @@ namespace Plugins.Warehouser.Observer
         /// <summary>
         /// 是否显示
         /// </summary>
-        private bool visible = true;
+        private bool visible = false;
 
         /// <summary>
         /// > 多少显示
