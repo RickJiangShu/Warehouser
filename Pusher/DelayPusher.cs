@@ -13,7 +13,6 @@ using UnityEngine;
 /// </summary>
 public class DelayPusher : MonoBehaviour
 {
-    public string name;
     public float delay;
 
     public void OnEnable()
