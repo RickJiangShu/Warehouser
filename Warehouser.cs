@@ -13,7 +13,7 @@ using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 using Plugins.Warehouser;
 
-#if OBSERVER
+#if TEST
 using Plugins.Warehouser.Observer;
 #endif
 
@@ -55,7 +55,7 @@ public class Warehouser
         //侦听图集引用请求
         SpriteAtlasManager.atlasRequested += AtlasRequest;
 
-#if OBSERVER
+#if TEST
         GameObject observer = new GameObject("Observer");
         observer.AddComponent<ObserverWindow>();
         Object.DontDestroyOnLoad(observer);

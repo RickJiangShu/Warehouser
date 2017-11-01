@@ -4,6 +4,7 @@
  * Email:   rickjiangshu@gmail.com
  * Follow:  https://github.com/RickJiangShu
  */
+#if TEST
 namespace Plugins.Warehouser.Observer
 {
     using System.Collections;
@@ -85,3 +86,4 @@ namespace Plugins.Warehouser.Observer
         }
     }
 }
+#endif
