@@ -49,17 +49,29 @@ namespace Plugins.Warehouser.Observer
                 foreach (string name in all.Keys)
                 {
                     Counter counter = new Counter();
+
                     counter.name = name;
-                    counter.totalCount = all[name].Count;
-                    if (pool.ContainsKey(name))
+                    counter.totalCount = 0;
+
+                    foreach (GameObject go in all[name])
                     {
-                        counter.poolCount = pool[name].Count;
+                        //过滤已被销毁的
+                        if (go.Equals(null))
+                            continue;
+
+                        counter.totalCount++;
+                        if (pool.ContainsKey(name))
+                        {
+                            counter.poolCount = pool[name].Count;
+                        }
+                        else
+                        {
+                            counter.poolCount = 0;
+                        }
                     }
-                    else
-                    {
-                        counter.poolCount = 0;
-                    }
-                    counterList.Add(counter);
+
+                    if(counter.totalCount > 0)
+                        counterList.Add(counter);
                 }
 
                 counterList.Sort(SortFun);
