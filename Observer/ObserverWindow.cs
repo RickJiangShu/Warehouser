@@ -9,6 +9,7 @@ namespace Plugins.Warehouser.Observer
 {
     using System.Collections;
     using System.Collections.Generic;
+    using System.Text.RegularExpressions;
     using UnityEngine;
 
     /// <summary>
@@ -24,7 +25,12 @@ namespace Plugins.Warehouser.Observer
         /// <summary>
         /// > 多少显示
         /// </summary>
-        private int limitCount = 0; 
+        private int limitCount = 0;
+
+        /// <summary>
+        /// 名字正则检测
+        /// </summary>
+        private string regex = "";
 
         public void OnGUI()
         {
@@ -65,8 +71,21 @@ namespace Plugins.Warehouser.Observer
                 {
                     totalCount += c.totalCount;
                     poolCount += c.poolCount;
+
+                    //数量过滤
                     if (c.totalCount <= limitCount)
                         continue;
+
+                    //名字过滤
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(regex) && !Regex.IsMatch(c.name, regex))
+                            continue;
+                    }
+                    catch
+                    {
+                        //防止正则输入出错
+                    }
 
                     info += string.Format(format, c.totalCount - c.poolCount, c.poolCount, c.totalCount, c.name);
                 }
@@ -76,6 +95,7 @@ namespace Plugins.Warehouser.Observer
 
                 limitCount = (int)GUILayout.HorizontalSlider(limitCount, 0, 10);
 
+                regex = GUILayout.TextField(regex);
                 GUILayout.TextArea(info);
             }
         }
