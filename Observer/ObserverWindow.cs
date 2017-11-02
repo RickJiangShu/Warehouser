@@ -35,32 +35,43 @@ namespace Plugins.Warehouser.Observer
 
             if (visible)
             {
-                string format = "{0}\t{1}\n";
+                string format = "{0}/{1}/{2}\t{3}\n";
                 
                 List<Counter> counterList = new List<Counter>();
+                Dictionary<string, List<GameObject>> all = global::Warehouser.allObjects;
                 Dictionary<string,List<GameObject>> pool = global::Warehouser.objectsOfPool;
-                foreach(string name in pool.Keys)
+                foreach (string name in all.Keys)
                 {
                     Counter counter = new Counter();
                     counter.name = name;
-                    counter.count = pool[name].Count;
+                    counter.totalCount = all[name].Count;
+                    if (pool.ContainsKey(name))
+                    {
+                        counter.poolCount = pool[name].Count;
+                    }
+                    else
+                    {
+                        counter.poolCount = 0;
+                    }
                     counterList.Add(counter);
                 }
 
                 counterList.Sort(SortFun);
 
                 string info = "";
-                int total = 0;
+                int totalCount = 0;
+                int poolCount = 0;
                 foreach (Counter c in counterList)
                 {
-                    total += c.count;
-                    if (c.count <= limitCount)
+                    totalCount += c.totalCount;
+                    poolCount += c.poolCount;
+                    if (c.totalCount <= limitCount)
                         continue;
 
-                    info += string.Format(format, c.count, c.name);
+                    info += string.Format(format, c.totalCount - c.poolCount, c.poolCount, c.totalCount, c.name);
                 }
 
-                info = string.Format(format, total, "Total") + info;
+                info = string.Format(format, totalCount - poolCount, poolCount, totalCount, "Total") + info;
                 info = info.Remove(info.Length - 1, 1);
 
                 limitCount = (int)GUILayout.HorizontalSlider(limitCount, 0, 10);
@@ -71,18 +82,19 @@ namespace Plugins.Warehouser.Observer
 
         private int SortFun(Counter a, Counter b)
         {
-            if (a.count > b.count)
+            if (a.totalCount > b.totalCount)
                 return -1;
-            else if (b.count > a.count)
+            else if (b.totalCount > a.totalCount)
                 return 1;
             else
                 return 0;
         }
 
-        private class Counter
+        private struct Counter
         {
             public string name;
-            public int count;
+            public int totalCount;
+            public int poolCount;
         }
     }
 }

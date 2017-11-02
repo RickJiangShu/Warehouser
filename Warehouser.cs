@@ -37,6 +37,10 @@ public class Warehouser
     /// </summary>
     internal static Dictionary<string, List<GameObject>> objectsOfPool = new Dictionary<string, List<GameObject>>();
 
+#if TEST
+    internal static Dictionary<string, List<GameObject>> allObjects = new Dictionary<string, List<GameObject>>();
+#endif
+
     /// <summary>
     /// 启动（运行时必先调用）
     /// </summary>
@@ -97,6 +101,17 @@ public class Warehouser
         GameObject original = GetAsset<GameObject>(name);
         GameObject instance = GameObject.Instantiate(original);
         instance.name = name;//name对于Warehouser是有意义的
+
+#if TEST
+        if (allObjects.ContainsKey(instance.name))
+        {
+            allObjects[instance.name].Add(instance);
+        }
+        else
+        {
+            allObjects.Add(instance.name, new List<GameObject>() { instance });
+        }
+#endif
         return instance;
     }
 
@@ -134,7 +149,7 @@ public class Warehouser
     {
         if(objectsOfPool.ContainsKey(instance.name))
         {
-            if (objectsOfPool[instance.name].Contains(instance))//添加已经存在于对象池中的对象
+            if (objectsOfPool[instance.name].Contains(instance))//防止重复添加
                 return;
 
             objectsOfPool[instance.name].Add(instance);
