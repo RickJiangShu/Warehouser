@@ -149,7 +149,7 @@ namespace Plugins.Warehouser.Editor
                         string bundlePath = Path.ChangeExtension(file.FullName, null);
                         File.Delete(bundlePath);
                         File.Delete(file.FullName);
-                        Debug.Log("Clear StreamingAsset:" + bundlePath);
+                        Debug.Log("Clear StreamingAsset:" + bundleName);
                     }
                 }
 
