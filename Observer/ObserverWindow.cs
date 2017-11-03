@@ -81,8 +81,7 @@ namespace Plugins.Warehouser.Observer
             long memory = Profiler.GetTotalAllocatedMemoryLong();
             if (memory > memoryMax)
                 memoryMax = memory;
-            string unit = "";
-            baseInfo += "\nMemory:\t" + MemoryOutputFormat(memory, out unit) + "/" + MemoryOutputFormat(memoryMax, out unit);
+            baseInfo += "\nMemory:\t" + (memory / 1048576f).ToString("N1") + "/" + (memoryMax / 1048576f).ToString("N1") + " MB";
 
             //计数
             List<Counter> counters = CalcCounter();
