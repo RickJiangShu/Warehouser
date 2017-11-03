@@ -45,7 +45,7 @@ namespace Plugins.Warehouser.Observer
                 
                 List<Counter> counterList = new List<Counter>();
                 Dictionary<string, List<GameObject>> all = global::Warehouser.allObjects;
-                Dictionary<string,List<GameObject>> pool = global::Warehouser.objectsOfPool;
+                Dictionary<string,List<GameObject>> pool = global::Warehouser.pool;
                 foreach (string name in all.Keys)
                 {
                     Counter counter = new Counter();

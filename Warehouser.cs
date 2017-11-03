@@ -35,9 +35,12 @@ public class Warehouser
     /// <summary>
     /// 对象池中的所有对象
     /// </summary>
-    internal static Dictionary<string, List<GameObject>> objectsOfPool = new Dictionary<string, List<GameObject>>();
+    internal static Dictionary<string, List<GameObject>> pool = new Dictionary<string, List<GameObject>>();
 
 #if TEST
+    /// <summary>
+    /// 所有对象（包括instance和newObject）
+    /// </summary>
     internal static Dictionary<string, List<GameObject>> allObjects = new Dictionary<string, List<GameObject>>();
 #endif
 
@@ -76,7 +79,42 @@ public class Warehouser
     }
 
     /// <summary>
-    /// 如果对象池有便取，否则实例化一个新的对象
+    /// 如果对象池有便取，否则新建一个新的对象
+    /// </summary>
+    /// <returns></returns>
+    public static GameObject GetObject(string name, params Type[] components)
+    {
+        GameObject dynamicObject = Pull(name);
+        if (dynamicObject == null)
+        {
+            dynamicObject = New(name, components);
+        }
+        return dynamicObject;
+    }
+
+    /// <summary>
+    /// 新建一个GameObject
+    /// </summary>
+    /// <returns></returns>
+    public static GameObject New(string name, params Type[] components)
+    {
+        GameObject dynamicObject = new GameObject(name, components);
+
+#if TEST
+        if (allObjects.ContainsKey(name))
+        {
+            allObjects[name].Add(dynamicObject);
+        }
+        else
+        {
+            allObjects.Add(name, new List<GameObject>() { dynamicObject });
+        }
+#endif
+        return dynamicObject;
+    }
+
+    /// <summary>
+    /// 如果对象池有便取，否则实例化一个新的Prefab
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
@@ -91,7 +129,7 @@ public class Warehouser
     }
 
     /// <summary>
-    /// 实例化
+    /// 实例化一个Prefab
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <param name="name"></param>
@@ -103,13 +141,13 @@ public class Warehouser
         instance.name = name;//name对于Warehouser是有意义的
 
 #if TEST
-        if (allObjects.ContainsKey(instance.name))
+        if (allObjects.ContainsKey(name))
         {
-            allObjects[instance.name].Add(instance);
+            allObjects[name].Add(instance);
         }
         else
         {
-            allObjects.Add(instance.name, new List<GameObject>() { instance });
+            allObjects.Add(name, new List<GameObject>() { instance });
         }
 #endif
         return instance;
@@ -122,14 +160,14 @@ public class Warehouser
     /// <returns></returns>
     public static GameObject Pull(string name)
     {
-        if (objectsOfPool.ContainsKey(name))
+        if (pool.ContainsKey(name))
         {
             //考虑到对象池中的对象已被销毁的情况
             GameObject objOfPool = null;
-            while (objectsOfPool[name].Count > 0)
+            while (pool[name].Count > 0)
             {
-                objOfPool = objectsOfPool[name][0];
-                objectsOfPool[name].RemoveAt(0);
+                objOfPool = pool[name][0];
+                pool[name].RemoveAt(0);
 
                 if (!objOfPool.Equals(null))
                 {
@@ -147,16 +185,16 @@ public class Warehouser
     /// <param name="instance"></param>
     public static void Push(GameObject instance)
     {
-        if(objectsOfPool.ContainsKey(instance.name))
+        if(pool.ContainsKey(instance.name))
         {
-            if (objectsOfPool[instance.name].Contains(instance))//防止重复添加
+            if (pool[instance.name].Contains(instance))//防止重复添加
                 return;
 
-            objectsOfPool[instance.name].Add(instance);
+            pool[instance.name].Add(instance);
         }
         else
         {
-            objectsOfPool.Add(instance.name, new List<GameObject>() { instance });
+            pool.Add(instance.name, new List<GameObject>() { instance });
         }
         instance.SetActive(false);
     }
@@ -166,7 +204,7 @@ public class Warehouser
     /// </summary>
     public static void Clear()
     {
-        foreach (List<GameObject> objects in objectsOfPool.Values)
+        foreach (List<GameObject> objects in pool.Values)
         {
             foreach (GameObject obj in objects)
             {
@@ -178,19 +216,19 @@ public class Warehouser
 
     public static void Clear(string name)
     {
-        if (objectsOfPool.ContainsKey(name))
+        if (pool.ContainsKey(name))
         {
-            foreach (GameObject obj in objectsOfPool[name])
+            foreach (GameObject obj in pool[name])
             {
                 GameObject.Destroy(obj);
             }
-            objectsOfPool[name].Clear();
+            pool[name].Clear();
         }
     }
 
     public static void ClearWithTag(string tag)
     {
-        foreach (List<GameObject> objects in objectsOfPool.Values)
+        foreach (List<GameObject> objects in pool.Values)
         {
             for (int i = objects.Count - 1; i >= 0; i--)
             {
