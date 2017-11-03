@@ -38,11 +38,35 @@ namespace Plugins.Warehouser.Observer
         /// </summary>
         private const string CounterFormat = "{0}/{1}/{2}\t{3}";
 
+        /// <summary>
+        /// fps下一次刷新时间
+        /// </summary>
+        private float fpsNextUpdate = 0.0f;
+
+        /// <summary>
+        /// 帧频
+        /// </summary>
+        private float fps = 0.0f;
+
+        /// <summary>
+        /// 内存峰值
+        /// </summary>
+        private long memoryMax = 0;
+
         void Start()
         {
+            fpsNextUpdate = Time.time;
         }
         void OnDestory()
         {
+        }
+        void Update()
+        {
+            if (Time.time > fpsNextUpdate)
+            {
+                fps = 1.0f / Time.deltaTime;
+                fpsNextUpdate += 1.0f;
+            }
         }
 
         public void OnGUI()
@@ -51,11 +75,14 @@ namespace Plugins.Warehouser.Observer
             string detailInfo = "";
 
             //FPS
-            baseInfo = "FPS:\t30";
+            baseInfo = "FPS:\t" + fps.ToString("0.0");
 
             //Memory
             long memory = Profiler.GetTotalAllocatedMemoryLong();
-            baseInfo += "\nMemory:\t" + MemoryOutputFormat(memory);
+            if (memory > memoryMax)
+                memoryMax = memory;
+            string unit = "";
+            baseInfo += "\nMemory:\t" + MemoryOutputFormat(memory, out unit) + "/" + MemoryOutputFormat(memoryMax, out unit);
 
             //计数
             List<Counter> counters = CalcCounter();
@@ -87,7 +114,7 @@ namespace Plugins.Warehouser.Observer
                 }
             }
 
-            baseInfo += "\n" + string.Format(CounterFormat, totalCount - poolCount, poolCount, totalCount, "Total");
+            baseInfo += "\nObjects:\t" + (totalCount - poolCount) + "/" + poolCount + "/" + totalCount;
             GUILayout.TextField(baseInfo);
 
             if (GUILayout.Button("Detail"))
@@ -161,18 +188,28 @@ namespace Plugins.Warehouser.Observer
         /// </summary>
         /// <param name="memory"></param>
         /// <returns></returns>
-        private string MemoryOutputFormat(long memory)
+        private string MemoryOutputFormat(long memory, out string unit)
         {
             if (memory < 1024)
-                return memory + " B";
+            {
+                unit = "B";
+                return memory.ToString();
+            }
 
             if (memory < 1048576)
-                return (memory / 1024f).ToString("0.0") + " KB";
+            {
+                unit = "KB";
+                return (memory / 1024f).ToString("0.0");
+            }
 
             if (memory < 1073741824)
-                return (memory / 1048576f).ToString("0.0") + " MB";
+            {
+                unit = "MB";
+                return (memory / 1048576f).ToString("0.0");
+            }
 
-            return (memory / 1073741824f).ToString("0.0") + " GB";
+            unit = "GB";
+            return (memory / 1073741824f).ToString("0.0");
         }
     }
 }
