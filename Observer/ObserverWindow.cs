@@ -66,6 +66,14 @@ namespace Plugins.Warehouser.Observer
             {
                 fps = 1.0f / Time.deltaTime;
                 fpsNextUpdate += 1.0f;
+
+                Debug.Log("GetMonoHeapSizeLong:" + Profiler.GetMonoHeapSizeLong() / 1048576);
+                Debug.Log("GetMonoUsedSizeLong:" + Profiler.GetMonoUsedSizeLong() / 1048576);
+
+                Debug.Log("GetTempAllocatorSize:" + Profiler.GetTempAllocatorSize() / 1048576);
+                Debug.Log("GetTotalAllocatedMemoryLong:" + Profiler.GetTotalAllocatedMemoryLong() / 1048576);
+                Debug.Log("GetTotalReservedMemoryLong:" + Profiler.GetTotalReservedMemoryLong() / 1048576);
+                Debug.Log("etTotalUnusedReservedMemoryLong:" + Profiler.GetTotalUnusedReservedMemoryLong() / 1048576);
             }
         }
 
@@ -81,9 +89,33 @@ namespace Plugins.Warehouser.Observer
             long memory = Profiler.GetTotalAllocatedMemoryLong();
             if (memory > memoryMax)
                 memoryMax = memory;
-            baseInfo += "\nMemory:\t" + (memory / 1048576f).ToString("N1") + "/" + (memoryMax / 1048576f).ToString("N1") + " MB";
+            baseInfo += "\nMemory:\t" + (memory / 1048576f).ToString("N1") + " / " + (memoryMax / 1048576f).ToString("N1") + " M";
 
             //计数
+            int objectCount = 0;
+            int poolCount = 0;
+            long objectMemory = 0;
+            Dictionary<string, List<GameObject>> all = global::Warehouser.allObjects;
+            Dictionary<string, List<GameObject>> pool = global::Warehouser.pool;
+            foreach (string name in all.Keys)
+            {
+                foreach (GameObject obj in all[name])
+                {
+                    if (obj.Equals(null))
+                        continue;
+
+                    objectCount++;
+                    if (pool.ContainsKey(name) && pool[name].Contains(obj))
+                        poolCount++;
+
+                    objectMemory += Profiler.GetRuntimeMemorySizeLong(obj);
+                }
+            }
+
+            baseInfo += "\nObjects:\t" + (objectCount - poolCount) + " / " + poolCount + " / " + objectCount + " (" + MemoryOutputFormat(objectMemory) + ")";
+
+
+            /*
             List<Counter> counters = CalcCounter();
             int totalCount = 0;
             int poolCount = 0;
@@ -112,9 +144,10 @@ namespace Plugins.Warehouser.Observer
                     detailInfo += string.Format(CounterFormat, c.totalCount - c.poolCount, c.poolCount, c.totalCount, c.name) + "\n";
                 }
             }
+             */
 
-            baseInfo += "\nObjects:\t" + (totalCount - poolCount) + "/" + poolCount + "/" + totalCount;
             GUILayout.TextField(baseInfo);
+
 
             if (GUILayout.Button("Detail"))
             {
@@ -187,28 +220,24 @@ namespace Plugins.Warehouser.Observer
         /// </summary>
         /// <param name="memory"></param>
         /// <returns></returns>
-        private string MemoryOutputFormat(long memory, out string unit)
+        private string MemoryOutputFormat(long memory)
         {
             if (memory < 1024)
             {
-                unit = "B";
-                return memory.ToString();
+                return memory.ToString() + " B";
             }
 
             if (memory < 1048576)
             {
-                unit = "KB";
-                return (memory / 1024f).ToString("0.0");
+                return (memory / 1024f).ToString("0.0") + " K";
             }
 
             if (memory < 1073741824)
             {
-                unit = "MB";
-                return (memory / 1048576f).ToString("0.0");
+                return (memory / 1048576f).ToString("0.0") + " M";
             }
 
-            unit = "GB";
-            return (memory / 1073741824f).ToString("0.0");
+            return (memory / 1073741824f).ToString("0.0") + " G";
         }
     }
 }
