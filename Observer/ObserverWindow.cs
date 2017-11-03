@@ -24,11 +24,6 @@ namespace Plugins.Warehouser.Observer
         private bool detailVisible = false;
 
         /// <summary>
-        /// > 多少显示
-        /// </summary>
-        private int limitCount = 0;
-
-        /// <summary>
         /// 名字正则检测
         /// </summary>
         private string regex = "";
@@ -60,6 +55,7 @@ namespace Plugins.Warehouser.Observer
         void OnDestory()
         {
         }
+
         void Update()
         {
             if (Time.time > fpsNextUpdate)
@@ -67,20 +63,22 @@ namespace Plugins.Warehouser.Observer
                 fps = 1.0f / Time.deltaTime;
                 fpsNextUpdate += 1.0f;
 
+                /*
                 Debug.Log("GetMonoHeapSizeLong:" + Profiler.GetMonoHeapSizeLong() / 1048576);
                 Debug.Log("GetMonoUsedSizeLong:" + Profiler.GetMonoUsedSizeLong() / 1048576);
 
-                Debug.Log("GetTempAllocatorSize:" + Profiler.GetTempAllocatorSize() / 1048576);
+                Debug.Log("usedHeapSizeLong:" + Profiler.usedHeapSizeLong / 1048576);
                 Debug.Log("GetTotalAllocatedMemoryLong:" + Profiler.GetTotalAllocatedMemoryLong() / 1048576);
                 Debug.Log("GetTotalReservedMemoryLong:" + Profiler.GetTotalReservedMemoryLong() / 1048576);
-                Debug.Log("etTotalUnusedReservedMemoryLong:" + Profiler.GetTotalUnusedReservedMemoryLong() / 1048576);
+                Debug.Log("GetTempAllocatorSize:" + Profiler.GetTempAllocatorSize() / 1048576);
+                Debug.Log("GetTotalUnusedReservedMemoryLong:" + Profiler.GetTotalUnusedReservedMemoryLong() / 1048576);
+                 */
             }
         }
 
         public void OnGUI()
         {
             string baseInfo = "";
-            string detailInfo = "";
 
             //FPS
             baseInfo = "FPS:\t" + fps.ToString("0.0");
@@ -112,42 +110,12 @@ namespace Plugins.Warehouser.Observer
                 }
             }
 
-            baseInfo += "\nObjects:\t" + (objectCount - poolCount) + " / " + poolCount + " / " + objectCount + " (" + MemoryOutputFormat(objectMemory) + ")";
+            baseInfo += "\nObjects:\t" + (objectCount - poolCount) + " / " + poolCount + " / " + objectCount;
+            if (objectMemory > 0f)
+                baseInfo += " (" + MemoryOutputFormat(objectMemory) + ")";
 
-
-            /*
-            List<Counter> counters = CalcCounter();
-            int totalCount = 0;
-            int poolCount = 0;
-            long totalMemory = 0;
-            foreach (Counter c in counters)
-            {
-                totalCount += c.totalCount;
-                poolCount += c.poolCount;
-
-                if (detailVisible)
-                {
-                    //数量过滤
-                    if (c.totalCount <= limitCount)
-                        continue;
-
-                    //名字过滤
-                    try
-                    {
-                        if (!string.IsNullOrEmpty(regex) && !Regex.IsMatch(c.name, regex))
-                            continue;
-                    }
-                    catch
-                    {
-                        //防止正则输入出错
-                    }
-                    detailInfo += string.Format(CounterFormat, c.totalCount - c.poolCount, c.poolCount, c.totalCount, c.name) + "\n";
-                }
-            }
-             */
-
+           
             GUILayout.TextField(baseInfo);
-
 
             if (GUILayout.Button("Detail"))
             {
@@ -156,63 +124,93 @@ namespace Plugins.Warehouser.Observer
 
             if (detailVisible)
             {
-                limitCount = (int)GUILayout.HorizontalSlider(limitCount, 0, 10);
+                string detailInfo = "";
+
                 regex = GUILayout.TextField(regex);
-                GUILayout.TextArea(detailInfo);
-            }
-        }
 
-        private List<Counter> CalcCounter()
-        {
-            List<Counter> counterList = new List<Counter>();
-            Dictionary<string, List<GameObject>> all = global::Warehouser.allObjects;
-            Dictionary<string, List<GameObject>> pool = global::Warehouser.pool;
-            foreach (string name in all.Keys)
-            {
-                Counter counter = new Counter();
-                counter.name = name;
-                counter.totalCount = 0;
+                List<Counter> counters = new List<Counter>();
 
-                foreach (GameObject go in all[name])
+                //填入Counter
+                foreach (string name in all.Keys)
                 {
-                    //过滤已被销毁的
-                    if (go.Equals(null))
-                        continue;
+                    Counter counter = new Counter();
+                    counter.name = name;
+                    counter.totalCount = 0;
 
-                    counter.totalCount++;
-                    if (pool.ContainsKey(name))
+                    foreach (GameObject obj in all[name])
                     {
-                        counter.poolCount = pool[name].Count;
+                        //过滤已被销毁的
+                        if (obj.Equals(null))
+                            continue;
+
+                        //过滤名字正则
+                        try
+                        {
+                            if (!string.IsNullOrEmpty(regex) && !Regex.IsMatch(counter.name, regex))
+                                continue;
+                        }
+                        catch { };
+
+                        counter.totalCount++;
+                        counter.memory += Profiler.GetRuntimeMemorySizeLong(obj);
+                        if (pool.ContainsKey(name))
+                        {
+                            counter.poolCount = pool[name].Count;
+                        }
+                        else
+                        {
+                            counter.poolCount = 0;
+                        }
                     }
-                    else
-                    {
-                        counter.poolCount = 0;
-                    }
+
+                    if (counter.totalCount > 0)
+                        counters.Add(counter);
                 }
 
-                if (counter.totalCount > 0)
-                    counterList.Add(counter);
-            }
+                //排序
+                counters.Sort(SortMemory);
 
-            counterList.Sort(SortFun);
-            return counterList;
+                //写入文本
+                foreach (Counter counter in counters)
+                {
+                    detailInfo += (counter.totalCount - counter.poolCount) + "/" + counter.poolCount + "/" + counter.totalCount;
+
+                    if (counter.memory > 0f)
+                        detailInfo += "\t" + MemoryOutputFormat(counter.memory);
+
+                    detailInfo += "\t" + counter.name + "\n";
+                }
+
+                if (detailInfo.Length > 0)
+                {
+                    GUILayout.TextArea(detailInfo.Remove(detailInfo.Length - 1, 1));
+                }
+                else
+                {
+                    GUILayout.TextArea("Empty");
+                }
+            }
         }
 
-        private int SortFun(Counter a, Counter b)
+        private int SortMemory(Counter a, Counter b)
         {
-            if (a.totalCount > b.totalCount)
+            if (a.memory > b.memory)
                 return -1;
-            else if (b.totalCount > a.totalCount)
+            else if (b.memory > a.memory)
                 return 1;
             else
                 return 0;
         }
 
+        /// <summary>
+        /// 对象计数
+        /// </summary>
         private struct Counter
         {
             public string name;
             public int totalCount;
             public int poolCount;
+            public long memory;
         }
 
         /// <summary>
