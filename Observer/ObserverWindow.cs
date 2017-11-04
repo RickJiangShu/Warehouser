@@ -112,11 +112,23 @@ namespace Plugins.Warehouser.Observer
 
             //Bundles
             Dictionary<string, AssetBundle> bundles = global::Warehouser.assetBundles;
-            baseInfo += "\nBundles:\t" + bundles.Keys.Count;
+            long bundlesMemory = 0;
+            foreach (AssetBundle bundle in bundles.Values)
+            {
+                bundlesMemory += Profiler.GetRuntimeMemorySizeLong(bundle);
+            }
+            baseInfo += "\nBundles:\t" + bundles.Keys.Count + " (" + MemoryOutputFormat(bundlesMemory) + ")";
 
             //Assets
             Dictionary<string, Object> assets = global::Warehouser.assets;
-            baseInfo += "\nAssets:\t" + assets.Keys.Count;
+            long assetsMemory = 0;
+            foreach (Object asset in assets.Values)
+            {
+                if (asset.Equals(null))
+                    continue;
+                assetsMemory += Profiler.GetRuntimeMemorySizeLong(asset);
+            }
+            baseInfo += "\nAssets:\t" + assets.Keys.Count + " (" + MemoryOutputFormat(assetsMemory) + ")";
 
             //Objects
             int objectCount = 0;
