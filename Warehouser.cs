@@ -120,7 +120,7 @@ public class Warehouser
         GameObject dynamicObject = Pull(name);
         if (dynamicObject == null)
         {
-            dynamicObject = New(name, components);
+            dynamicObject = NewObject(name, components);
         }
         return dynamicObject;
     }
@@ -129,7 +129,7 @@ public class Warehouser
     /// 新建一个GameObject
     /// </summary>
     /// <returns></returns>
-    public static GameObject New(string name, params Type[] components)
+    public static GameObject NewObject(string name, params Type[] components)
     {
         GameObject dynamicObject = new GameObject(name, components);
 
