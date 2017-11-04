@@ -52,6 +52,11 @@ namespace Plugins.Warehouser.Observer
         /// 内存警告错误
         /// </summary>
         public static int memoryWarningCount = 0;
+        
+        /// <summary>
+        /// 滑动位置
+        /// </summary>
+        private Vector2[] scrollPositions = new Vector2[3];
 
         void Start()
         {
@@ -110,26 +115,6 @@ namespace Plugins.Warehouser.Observer
                 memoryMax = memory;
             baseInfo += "\nMemory:\t" + (memory / 1048576f).ToString("N1") + " / " + (memoryMax / 1048576f).ToString("N1") + " M";
 
-            //Bundles
-            Dictionary<string, AssetBundle> bundles = global::Warehouser.assetBundles;
-            long bundlesMemory = 0;
-            foreach (AssetBundle bundle in bundles.Values)
-            {
-                bundlesMemory += Profiler.GetRuntimeMemorySizeLong(bundle);
-            }
-            baseInfo += "\nBundles:\t" + bundles.Keys.Count + " (" + MemoryOutputFormat(bundlesMemory) + ")";
-
-            //Assets
-            Dictionary<string, Object> assets = global::Warehouser.assets;
-            long assetsMemory = 0;
-            foreach (Object asset in assets.Values)
-            {
-                if (asset.Equals(null))
-                    continue;
-                assetsMemory += Profiler.GetRuntimeMemorySizeLong(asset);
-            }
-            baseInfo += "\nAssets:\t" + assets.Keys.Count + " (" + MemoryOutputFormat(assetsMemory) + ")";
-
             //Objects
             int objectCount = 0;
             int poolCount = 0;
@@ -155,7 +140,26 @@ namespace Plugins.Warehouser.Observer
             if (objectMemory > 0f)
                 baseInfo += " (" + MemoryOutputFormat(objectMemory) + ")";
 
+            //Assets
+            Dictionary<string, Object> assets = global::Warehouser.assets;
+            long assetsMemory = 0;
+            foreach (Object asset in assets.Values)
+            {
+                assetsMemory += Profiler.GetRuntimeMemorySizeLong(asset);
+            }
+            baseInfo += "\nAssets:\t" + assets.Keys.Count + " (" + MemoryOutputFormat(assetsMemory) + ")";
+
+            //Bundles
+            Dictionary<string, AssetBundle> bundles = global::Warehouser.assetBundles;
+            long bundlesMemory = 0;
+            foreach (AssetBundle bundle in bundles.Values)
+            {
+                bundlesMemory += Profiler.GetRuntimeMemorySizeLong(bundle);
+            }
+            baseInfo += "\nBundles:\t" + bundles.Keys.Count + " (" + MemoryOutputFormat(bundlesMemory) + ")";
+
            
+            //显示baseInfo
             GUILayout.TextField(baseInfo);
 
             if (GUILayout.Button("Detail"))
@@ -169,14 +173,15 @@ namespace Plugins.Warehouser.Observer
 
                 regex = GUILayout.TextField(regex);
 
-                List<Counter> counters = new List<Counter>();
+                #region Count Objects
+                List<ObjectCounter> objectCounters = new List<ObjectCounter>();
 
                 //填入Counter
                 foreach (string name in all.Keys)
                 {
-                    Counter counter = new Counter();
+                    ObjectCounter counter = new ObjectCounter();
                     counter.name = name;
-                    counter.totalCount = 0;
+                    counter.count = 0;
 
                     foreach (GameObject obj in all[name])
                     {
@@ -187,12 +192,12 @@ namespace Plugins.Warehouser.Observer
                         //过滤名字正则
                         try
                         {
-                            if (!string.IsNullOrEmpty(regex) && !Regex.IsMatch(counter.name, regex))
+                            if (!string.IsNullOrEmpty(regex) && !Regex.IsMatch(name, regex))
                                 continue;
                         }
                         catch { };
 
-                        counter.totalCount++;
+                        counter.count++;
                         counter.memory += Profiler.GetRuntimeMemorySizeLong(obj);
                         if (pool.ContainsKey(name))
                         {
@@ -204,32 +209,101 @@ namespace Plugins.Warehouser.Observer
                         }
                     }
 
-                    if (counter.totalCount > 0)
-                        counters.Add(counter);
+                    if (counter.count > 0)
+                        objectCounters.Add(counter);
                 }
 
                 //排序
-                counters.Sort(SortMemory);
+                objectCounters.Sort(SortMemory);
+
+                detailInfo = "Objects:\n";
 
                 //写入文本
-                foreach (Counter counter in counters)
+                foreach (ObjectCounter counter in objectCounters)
                 {
-                    detailInfo += (counter.totalCount - counter.poolCount) + "/" + counter.poolCount + "/" + counter.totalCount;
-
-                    if (counter.memory > 0f)
-                        detailInfo += "\t" + MemoryOutputFormat(counter.memory);
-
-                    detailInfo += "\t" + counter.name + "\n";
+                    detailInfo += MemoryOutputFormat(counter.memory) + "\t" +　(counter.count - counter.poolCount) + "/" + counter.poolCount + "/" + counter.count + "\t" + counter.name + "\n";
                 }
 
-                if (detailInfo.Length > 0)
+                scrollPositions[0] = GUILayout.BeginScrollView(scrollPositions[0], GUILayout.Width(300), GUILayout.Height(100));
+                GUILayout.TextField(detailInfo.Remove(detailInfo.Length - 1, 1));
+                GUILayout.EndScrollView();
+                #endregion
+
+                #region Count Assets
+                List<Counter> assetCounters = new List<Counter>();
+
+                foreach (string name in assets.Keys)
                 {
-                    GUILayout.TextArea(detailInfo.Remove(detailInfo.Length - 1, 1));
+                    Object asset = assets[name];
+
+                    //过滤名字正则
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(regex) && !Regex.IsMatch(name, regex))
+                            continue;
+                    }
+                    catch { };
+
+                    Counter counter = new Counter();
+                    counter.name = name;
+                    counter.memory = Profiler.GetRuntimeMemorySizeLong(asset);
+                    assetCounters.Add(counter);
                 }
-                else
+
+                //排序
+                assetCounters.Sort(SortMemory);
+
+                detailInfo = "Assets:\n";
+
+                //写入文本
+                foreach (Counter counter in assetCounters)
                 {
-                    GUILayout.TextArea("Empty");
+                    detailInfo += MemoryOutputFormat(counter.memory) + "\t" + counter.name + "\n";
                 }
+
+                GUILayout.Space(4f);
+                scrollPositions[1] = GUILayout.BeginScrollView(scrollPositions[1], GUILayout.Width(300), GUILayout.Height(100));
+                GUILayout.TextField(detailInfo.Remove(detailInfo.Length - 1, 1));
+                GUILayout.EndScrollView();
+                #endregion
+
+                #region Count Bundles
+                List<Counter> bundleCounters = new List<Counter>();
+
+                foreach (string name in bundles.Keys)
+                {
+                    AssetBundle bundle = bundles[name];
+
+                    //过滤名字正则
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(regex) && !Regex.IsMatch(name, regex))
+                            continue;
+                    }
+                    catch { };
+
+                    Counter counter = new Counter();
+                    counter.name = name;
+                    counter.memory = Profiler.GetRuntimeMemorySizeLong(bundle);
+                    bundleCounters.Add(counter);
+                }
+
+                //排序
+                bundleCounters.Sort(SortMemory);
+
+                detailInfo = "Bundles:\n";
+
+                //写入文本
+                foreach (Counter counter in bundleCounters)
+                {
+                    detailInfo += MemoryOutputFormat(counter.memory) + "\t" + counter.name + "\n";
+                }
+
+                GUILayout.Space(4f);
+                scrollPositions[2] = GUILayout.BeginScrollView(scrollPositions[2], GUILayout.Width(300), GUILayout.Height(100));
+                GUILayout.TextField(detailInfo.Remove(detailInfo.Length - 1, 1));
+                GUILayout.EndScrollView();
+                #endregion
             }
         }
 
@@ -244,14 +318,21 @@ namespace Plugins.Warehouser.Observer
         }
 
         /// <summary>
-        /// 对象计数
+        /// 计数器
         /// </summary>
-        private struct Counter
+        private class Counter
         {
             public string name;
-            public int totalCount;
-            public int poolCount;
             public long memory;
+        }
+
+        /// <summary>
+        /// 对象计数器
+        /// </summary>
+        private class ObjectCounter : Counter
+        {
+            public int count;
+            public int poolCount;
         }
 
         /// <summary>

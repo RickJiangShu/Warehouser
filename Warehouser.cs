@@ -381,22 +381,19 @@ public class Warehouser
     }
 
 
+    public static void UnloadAsset(GameObject asset)
+    {
+        assets.Remove(asset.name);
+        GameObject.DestroyImmediate(asset, true);
+    }
     /// <summary>
     /// 卸载Asset
     /// </summary>
     /// <param name="asset"></param>
-    public static void UnloadAsset(string name)
+    public static void UnloadAsset(Object asset)
     {
-        Object asset = assets[name];
-        if (asset is GameObject)
-        {
-            GameObject.DestroyImmediate(asset, true);
-        }
-        else
-        {
-            Resources.UnloadAsset(asset);
-        }
-        assets.Remove(name);
+        assets.Remove(asset.name);
+        Resources.UnloadAsset(asset);
     }
 
     /// <summary>
