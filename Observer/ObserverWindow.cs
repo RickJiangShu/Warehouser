@@ -268,6 +268,7 @@ namespace Plugins.Warehouser.Observer
                 #endregion
 
                 #region Count Bundles
+                Dictionary<string, int> leftCount = global::Warehouser.leftAssetCount;
                 List<Counter> bundleCounters = new List<Counter>();
 
                 foreach (string name in bundles.Keys)
@@ -284,6 +285,7 @@ namespace Plugins.Warehouser.Observer
 
                     Counter counter = new Counter();
                     counter.name = name;
+                    counter.count = leftCount[name];
                     counter.memory = Profiler.GetRuntimeMemorySizeLong(bundle);
                     bundleCounters.Add(counter);
                 }
@@ -296,7 +298,7 @@ namespace Plugins.Warehouser.Observer
                 //写入文本
                 foreach (Counter counter in bundleCounters)
                 {
-                    detailInfo += MemoryOutputFormat(counter.memory) + "\t" + counter.name + "\n";
+                    detailInfo += MemoryOutputFormat(counter.memory) + "\t" + counter.count + "\t" + counter.name + "\n";
                 }
 
                 GUILayout.Space(4f);
@@ -323,6 +325,7 @@ namespace Plugins.Warehouser.Observer
         private class Counter
         {
             public string name;
+            public int count;
             public long memory;
         }
 
@@ -331,7 +334,6 @@ namespace Plugins.Warehouser.Observer
         /// </summary>
         private class ObjectCounter : Counter
         {
-            public int count;
             public int poolCount;
         }
 
