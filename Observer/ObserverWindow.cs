@@ -4,7 +4,7 @@
  * Email:   rickjiangshu@gmail.com
  * Follow:  https://github.com/RickJiangShu
  */
-#if TEST
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 namespace Plugins.Warehouser.Observer
 {
     using System.Collections;
@@ -61,22 +61,12 @@ namespace Plugins.Warehouser.Observer
         void Start()
         {
             fpsNextUpdate = Time.time;
-
-
-        }
-
-        void OnDestory()
-        {
         }
 
         void Update()
         {
-          //  new Texture2D(256, 256);
-
             if (Time.time > fpsNextUpdate)
             {
-           //     _textures.Add(new Texture2D(256, 256));
-
                 fps = 1.0f / Time.deltaTime;
                 fpsNextUpdate += 1.0f;
 
@@ -101,7 +91,7 @@ namespace Plugins.Warehouser.Observer
                 warningStyle.fontStyle = FontStyle.Bold;
                 warningStyle.fontSize = 16;
                 warningStyle.normal.textColor = Color.red;
-                GUILayout.TextField("Memory Warrning:" + memoryWarningCount, warningStyle);
+                GUILayout.Label("Memory Warrning: " + memoryWarningCount, warningStyle);
             }
 
             string baseInfo = "";

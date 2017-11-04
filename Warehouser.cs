@@ -13,7 +13,7 @@ using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 using Plugins.Warehouser;
 
-#if TEST
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
 using Plugins.Warehouser.Observer;
 #endif
 
@@ -47,7 +47,7 @@ public class Warehouser
     /// </summary>
     internal static Dictionary<string, List<GameObject>> pool = new Dictionary<string, List<GameObject>>();
 
-#if TEST
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
     /// <summary>
     /// 所有对象（包括instance和newObject）
     /// </summary>
@@ -75,7 +75,7 @@ public class Warehouser
         //侦听内存不足事件
         Application.lowMemory += OnLowMemory;
 
-#if TEST
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         GameObject observer = new GameObject("Observer");
         observer.AddComponent<ObserverWindow>();
         Object.DontDestroyOnLoad(observer);
@@ -87,16 +87,12 @@ public class Warehouser
     /// </summary>
     private static void OnLowMemory()
     {
-        Debug.LogError("LowMemory");
-
-#if TEST
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         ObserverWindow.memoryWarningCount++;
 #endif
 
         //清空对象池
         Clear();
-
-        //清空AssetBundles
 
         //防止程序中使用其他创建Asset的操作，比如：new Texture()
         Resources.UnloadUnusedAssets();
@@ -133,7 +129,7 @@ public class Warehouser
     {
         GameObject dynamicObject = new GameObject(name, components);
 
-#if TEST
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (allObjects.ContainsKey(name))
         {
             allObjects[name].Add(dynamicObject);
@@ -173,7 +169,7 @@ public class Warehouser
         GameObject instance = GameObject.Instantiate(original);
         instance.name = name;//name对于Warehouser是有意义的
 
-#if TEST
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (allObjects.ContainsKey(name))
         {
             allObjects[name].Add(instance);
