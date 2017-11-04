@@ -28,9 +28,14 @@ public class Warehouser
     private static AssetBundleManifest manifest;
 
     /// <summary>
-    /// 目前缓存的Bundle
+    /// 所有加载的Bundles
     /// </summary>
     private static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>();
+
+    /// <summary>
+    /// 所有加载的Assets
+    /// </summary>
+    private static Dictionary<string, Object> assets = new Dictionary<string, Object>();
 
     /// <summary>
     /// 对象池中的所有对象
@@ -62,11 +67,34 @@ public class Warehouser
         //侦听图集引用请求
         SpriteAtlasManager.atlasRequested += AtlasRequest;
 
+        //侦听内存不足事件
+        Application.lowMemory += OnLowMemory;
+
 #if TEST
         GameObject observer = new GameObject("Observer");
         observer.AddComponent<ObserverWindow>();
         Object.DontDestroyOnLoad(observer);
 #endif
+    }
+
+    /// <summary>
+    /// 内存不足事件
+    /// </summary>
+    private static void OnLowMemory()
+    {
+        Debug.LogError("LowMemory");
+
+#if TEST
+        ObserverWindow.memoryWarningCount++;
+#endif
+
+        //清空对象池
+        Clear();
+
+        //清空AssetBundles
+
+        //防止程序中使用其他创建Asset的操作，比如：new Texture()
+        Resources.UnloadUnusedAssets();
     }
 
     /// <summary>
