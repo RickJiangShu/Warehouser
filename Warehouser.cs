@@ -30,12 +30,12 @@ public class Warehouser
     /// <summary>
     /// 所有加载的Bundles
     /// </summary>
-    private static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>();
+    internal static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>();
 
     /// <summary>
     /// 所有加载的Assets
     /// </summary>
-    private static Dictionary<string, Object> assets = new Dictionary<string, Object>();
+    internal static Dictionary<string, Object> assets = new Dictionary<string, Object>();
 
     /// <summary>
     /// 对象池中的所有对象
@@ -385,8 +385,9 @@ public class Warehouser
     /// 卸载Asset
     /// </summary>
     /// <param name="asset"></param>
-    public static void UnloadAsset(Object asset)
+    public static void UnloadAsset(string name)
     {
+        Object asset = assets[name];
         if (asset is GameObject)
         {
             GameObject.DestroyImmediate(asset, true);
@@ -395,6 +396,7 @@ public class Warehouser
         {
             Resources.UnloadAsset(asset);
         }
+        assets.Remove(name);
     }
 
     /// <summary>

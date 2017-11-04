@@ -110,7 +110,15 @@ namespace Plugins.Warehouser.Observer
                 memoryMax = memory;
             baseInfo += "\nMemory:\t" + (memory / 1048576f).ToString("N1") + " / " + (memoryMax / 1048576f).ToString("N1") + " M";
 
-            //计数
+            //Bundles
+            Dictionary<string, AssetBundle> bundles = global::Warehouser.assetBundles;
+            baseInfo += "\nBundles:\t" + bundles.Keys.Count;
+
+            //Assets
+            Dictionary<string, Object> assets = global::Warehouser.assets;
+            baseInfo += "\nAssets:\t" + assets.Keys.Count;
+
+            //Objects
             int objectCount = 0;
             int poolCount = 0;
             long objectMemory = 0;
