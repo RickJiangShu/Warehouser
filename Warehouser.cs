@@ -279,6 +279,10 @@ public class Warehouser
     {
         Object asset;
 
+        //获取缓存
+        if (assets.TryGetValue(name, out asset))
+            return (T)asset;
+
         //获取路径
         string path;
         if (!Mapper.TryGetPath(name, out path))
@@ -341,6 +345,8 @@ public class Warehouser
             mat.shader = Shader.Find(shaderName);
         }
 #endif
+
+        assets.Add(name, asset);
         return (T)asset;
     }
 
