@@ -76,9 +76,9 @@ namespace Plugins.Warehouser.Editor
             pathMap.pairs = allPairs.ToArray();
 
             //创建PathMap
-            if (File.Exists(pairsOutput))
+            UnityEngine.Object old = AssetDatabase.LoadMainAssetAtPath(pairsOutput);
+            if (old != null)
             {
-                UnityEngine.Object old = AssetDatabase.LoadMainAssetAtPath(pairsOutput);
                 EditorUtility.CopySerialized(pathMap, old);
             }
             else

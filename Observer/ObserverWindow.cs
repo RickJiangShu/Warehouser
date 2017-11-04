@@ -48,18 +48,42 @@ namespace Plugins.Warehouser.Observer
         /// </summary>
         private long memoryMax = 0;
 
+        /// <summary>
+        /// 内存警告错误
+        /// </summary>
+        private int memoryWarningCount = 0;
+
         void Start()
         {
             fpsNextUpdate = Time.time;
+
+
+            _textures = new List<Texture2D>();
+            Application.lowMemory += OnLowMemory;
         }
+
+        private void OnLowMemory()
+        {
+            Debug.LogError("LowMemory");
+            // release all cached textures
+            _textures = new List<Texture2D>();
+            Resources.UnloadUnusedAssets();
+        }
+
         void OnDestory()
         {
         }
 
+        List<Texture2D> _textures;
+
         void Update()
         {
+            _textures.Add(new Texture2D(256, 256));
+
             if (Time.time > fpsNextUpdate)
             {
+           //     _textures.Add(new Texture2D(256, 256));
+
                 fps = 1.0f / Time.deltaTime;
                 fpsNextUpdate += 1.0f;
 
@@ -78,6 +102,15 @@ namespace Plugins.Warehouser.Observer
 
         public void OnGUI()
         {
+            if (memoryWarningCount > 0)
+            {
+                GUIStyle warningStyle = new GUIStyle();
+                warningStyle.fontStyle = FontStyle.Bold;
+                warningStyle.fontSize = 16;
+                warningStyle.normal.textColor = Color.red;
+                GUILayout.TextField("Memory Warrning:" + memoryWarningCount, warningStyle);
+            }
+
             string baseInfo = "";
 
             //FPS
