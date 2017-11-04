@@ -33,6 +33,11 @@ public class Warehouser
     internal static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>();
 
     /// <summary>
+    /// Bundle中尚未加载的Asset数量
+    /// </summary>
+    internal static Dictionary<string, int> leftAssetCount = new Dictionary<string, int>(); 
+
+    /// <summary>
     /// 所有加载的Assets
     /// </summary>
     internal static Dictionary<string, Object> assets = new Dictionary<string, Object>();
@@ -58,14 +63,14 @@ public class Warehouser
         AssetBundle manifesetBundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/StreamingAssets");
         manifest = manifesetBundle.LoadAsset<AssetBundleManifest>("AssetBundleManifest");
         manifesetBundle.Unload(false);
-
+        
         //加载PathPairs
         Pairs pairs = Resources.Load<Pairs>("WarehouserPairs");
         Mapper.Initialize(pairs);
         Resources.UnloadAsset(pairs);
 
         //侦听图集引用请求
-        SpriteAtlasManager.atlasRequested += AtlasRequest;
+        SpriteAtlasManager.atlasRequested += OnAtlasRequest;
 
         //侦听内存不足事件
         Application.lowMemory += OnLowMemory;
@@ -100,7 +105,7 @@ public class Warehouser
     /// <summary>
     /// 处理图集加载请求
     /// </summary>
-    private static void AtlasRequest(string name, Action<SpriteAtlas> callback)
+    private static void OnAtlasRequest(string name, Action<SpriteAtlas> callback)
     {
         SpriteAtlas atlas = GetAsset<SpriteAtlas>(name);
         callback(atlas);
@@ -270,6 +275,24 @@ public class Warehouser
     }
 
     /// <summary>
+    /// 获取图集上的精灵
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static Sprite GetSprite(string name)
+    {
+        string atlasName;
+        if (!Mapper.TryGetPath(name, out atlasName))
+        {
+            Debug.LogError("找不到引用的图集：" + name);
+            return null;
+        }
+
+        SpriteAtlas atlas = GetAsset<SpriteAtlas>(atlasName);
+        return atlas.GetSprite(name);
+    }
+
+    /// <summary>
     /// 获取Asset
     /// </summary>
     /// <typeparam name="T"></typeparam>
@@ -287,30 +310,29 @@ public class Warehouser
         string path;
         if (!Mapper.TryGetPath(name, out path))
         {
-            Debug.LogError("找不到路径：" + name);
+            Debug.LogError("找不到映射的路径：" + name);
             return null;
         }
 
-        //AssetBundle 加载
-        if (Path.HasExtension(path))
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (!Path.HasExtension(path))
         {
-            AssetBundle bundle;
-            if (assetBundles.TryGetValue(path, out bundle))
-            {
-                asset = bundle.LoadAsset<T>(name);
-            }
-            else
-            {
-                LoadDependencies(path);//加载依赖
-                bundle = LoadAndCacheAssetBundle(path);
-                asset = bundle.LoadAsset<T>(name);
-            }
+            Debug.LogError("获取图集上的精灵，使用Warehouser.GetSprite");
+            return null;
         }
-        //图集加载
+#endif
+
+        //AssetBundle 加载
+        AssetBundle bundle;
+        if (assetBundles.TryGetValue(path, out bundle))
+        {
+            asset = bundle.LoadAsset<T>(name);
+        }
         else
         {
-            SpriteAtlas atlas = GetAsset<SpriteAtlas>(path);
-            asset = atlas.GetSprite(name);
+            LoadDependencies(path);//加载依赖
+            bundle = LoadAndCacheAssetBundle(path);
+            asset = bundle.LoadAsset<T>(name);
         }
 
         if (asset == null)
@@ -345,8 +367,15 @@ public class Warehouser
             mat.shader = Shader.Find(shaderName);
         }
 #endif
+        //检测包中是否还有没加载的Asset，如果没有则销毁Bundle
+        int leftCount = --leftAssetCount[path];
+        if (leftCount == 0)
+        {
+            UnloadAssetBundle(bundle);
+        }
 
         assets.Add(name, asset);
+
         return (T)asset;
     }
 
@@ -377,9 +406,23 @@ public class Warehouser
     {
         AssetBundle bundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/" + assetBundleName);
         assetBundles.Add(assetBundleName, bundle);
+
+        string[] assetNames = bundle.GetAllAssetNames();
+        leftAssetCount.Add(assetBundleName, assetNames.Length);
         return bundle;
     }
 
+    /// <summary>
+    /// 卸载AssetBundle
+    /// </summary>
+    /// <param name="assetBundleName"></param>
+    /// <param name="unloadAllLoadedObjects"></param>
+    public static void UnloadAssetBundle(AssetBundle bundle)
+    {
+        assetBundles.Remove(bundle.name);
+        leftAssetCount.Remove(bundle.name);
+        bundle.Unload(false);
+    }
 
     public static void UnloadAsset(GameObject asset)
     {
@@ -394,20 +437,5 @@ public class Warehouser
     {
         assets.Remove(asset.name);
         Resources.UnloadAsset(asset);
-    }
-
-    /// <summary>
-    /// 卸载AssetBundle
-    /// </summary>
-    /// <param name="assetBundleName"></param>
-    /// <param name="unloadAllLoadedObjects"></param>
-    public static void UnloadAssetBundle(string assetBundleName,bool unloadAllLoadedObjects)
-    {
-        AssetBundle bundle;
-        if (assetBundles.TryGetValue(assetBundleName, out bundle))
-        {
-            bundle.Unload(unloadAllLoadedObjects);
-            assetBundles.Remove(assetBundleName);
-        }
     }
 }

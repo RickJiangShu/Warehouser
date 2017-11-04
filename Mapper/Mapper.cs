@@ -31,6 +31,11 @@ namespace Plugins.Warehouser
             }
         }
 
+        public static string Get(string name)
+        {
+            return mapOfPaths[name];
+        }
+
         /// <summary>
         /// 
         /// </summary>
