@@ -35,7 +35,12 @@ public class Warehouser
     /// <summary>
     /// Bundle中尚未加载的Asset数量
     /// </summary>
-    internal static Dictionary<string, int> leftAssetCount = new Dictionary<string, int>(); 
+    internal static Dictionary<string, int> leftAssetCount = new Dictionary<string, int>();
+
+    /// <summary>
+    /// 等待下一帧卸载的Bundle
+    /// </summary>
+    internal static List<string> waitingUnloadBundles = new List<string>();
 
     /// <summary>
     /// 所有加载的Assets
@@ -74,6 +79,12 @@ public class Warehouser
 
         //侦听内存不足事件
         Application.lowMemory += OnLowMemory;
+
+        //添加BundleUnloader
+        GameObject unloder = new GameObject("AssetBundleUnloader");
+        unloder.AddComponent<BundleUnloader>();
+        Object.DontDestroyOnLoad(unloder);
+
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         GameObject observer = new GameObject("Observer");
@@ -331,6 +342,7 @@ public class Warehouser
             asset = bundle.LoadAsset<T>(name);
         }
 
+
         if (asset == null)
         {
             Debug.LogError("Asset获取失败：" + name);
@@ -367,7 +379,8 @@ public class Warehouser
         int leftCount = --leftAssetCount[path];
         if (leftCount == 0)
         {
-            UnloadAssetBundle(bundle);
+            //下一帧销毁
+            waitingUnloadBundles.Add(path);
         }
 
         assets.Add(name, asset);
@@ -408,18 +421,6 @@ public class Warehouser
         return bundle;
     }
 
-    /// <summary>
-    /// 卸载AssetBundle
-    /// </summary>
-    /// <param name="assetBundleName"></param>
-    /// <param name="unloadAllLoadedObjects"></param>
-    public static void UnloadAssetBundle(AssetBundle bundle)
-    {
-        assetBundles.Remove(bundle.name);
-        leftAssetCount.Remove(bundle.name);
-        bundle.Unload(false);
-    }
-
     public static void UnloadAsset(GameObject asset)
     {
         assets.Remove(asset.name);
@@ -433,5 +434,27 @@ public class Warehouser
     {
         assets.Remove(asset.name);
         Resources.UnloadAsset(asset);
+    }
+
+
+    /// <summary>
+    /// AssetBundle卸载器（Windows下：从Bundle中加载一个Asset后， Bundle中的内容并未全部加载，而是下一帧加载，因此需要等待全部加载完后销毁）
+    /// </summary>
+    private class BundleUnloader : MonoBehaviour
+    {
+        void Update()
+        {
+            while (waitingUnloadBundles.Count > 0)
+            {
+                string name = waitingUnloadBundles[0];
+                AssetBundle bundle = assetBundles[name];
+
+                assetBundles.Remove(name);
+                leftAssetCount.Remove(name);
+                waitingUnloadBundles.RemoveAt(0);
+
+                bundle.Unload(false);
+            }
+        }
     }
 }
