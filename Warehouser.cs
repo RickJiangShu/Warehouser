@@ -81,9 +81,9 @@ public class Warehouser
         Application.lowMemory += OnLowMemory;
 
         //添加BundleUnloader
-        GameObject unloder = new GameObject("AssetBundleUnloader");
-        unloder.AddComponent<BundleUnloader>();
-        Object.DontDestroyOnLoad(unloder);
+    //    GameObject unloder = new GameObject("AssetBundleUnloader");
+   //     unloder.AddComponent<BundleUnloader>();
+   //     Object.DontDestroyOnLoad(unloder);
 
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
