@@ -58,8 +58,14 @@ namespace Plugins.Warehouser.Observer
         /// </summary>
         private Vector2[] scrollPositions = new Vector2[3];
 
+        /// <summary>
+        /// 开始时间
+        /// </summary>
+        private static float startTime = 0;
+
         void Start()
         {
+            startTime = Time.realtimeSinceStartup;
             fpsNextUpdate = Time.time;
         }
 
@@ -96,8 +102,12 @@ namespace Plugins.Warehouser.Observer
 
             string baseInfo = "";
 
+            //Time
+            int seconds = (int)(Time.realtimeSinceStartup - startTime);
+            baseInfo += "Time:\t" + string.Format("{0:00}:{1:00}", seconds / 60, seconds % 60);
+
             //FPS
-            baseInfo = "FPS:\t" + fps.ToString("0.0");
+            baseInfo += "\nFPS:\t" + fps.ToString("0.0");
 
             //Memory
             long memory = Profiler.GetTotalAllocatedMemoryLong();
