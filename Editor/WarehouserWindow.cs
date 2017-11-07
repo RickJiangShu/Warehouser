@@ -19,11 +19,6 @@ namespace Plugins.Warehouser.Editor
     public class WarehouserWindow : EditorWindow, IHasCustomMenu
     {
         /// <summary>
-        /// AssetBundle 后缀名
-        /// </summary>
-        public const string EXTENSION = ".ab";
-
-        /// <summary>
         /// 配置文件路径
         /// </summary>
         public const string SETTINGS_PATH = "Assets/WarehouserSettings.asset";
@@ -74,6 +69,10 @@ namespace Plugins.Warehouser.Editor
 
             //AB Packager
             GUILayout.Label("Asset Bundle Packager", EditorStyles.boldLabel);
+            
+            //extension
+        //    GUILayout.Label("Default Extension:");
+            settings.batchExtension = EditorGUILayout.TextField("Batch Extension:", settings.batchExtension);
 
             SerializedProperty abPackages = so.FindProperty("assetBundlePackages");
             EditorGUILayout.PropertyField(abPackages, true);
@@ -98,7 +97,7 @@ namespace Plugins.Warehouser.Editor
 
             if (GUILayout.Button("Pack"))
             {
-                AssetBundlePackager.Pack(settings.assetBundlePackages);
+                AssetBundlePackager.Pack(settings.assetBundlePackages, settings.batchExtension);
             }
 
             if (GUILayout.Button("Map"))

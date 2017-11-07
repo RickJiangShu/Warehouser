@@ -16,13 +16,18 @@ namespace Plugins.Warehouser.Editor
     public class Setting : ScriptableObject
     {
         /// <summary>
-        /// 需要映射的路径
+        /// 批处理时的后缀名
         /// </summary>
-        public List<string> mapPaths;
+        public string batchExtension = ".ab";
 
         /// <summary>
         /// AB包
         /// </summary>
         public List<AssetBundlePackage> assetBundlePackages;
+
+        /// <summary>
+        /// 需要映射的路径
+        /// </summary>
+        public List<string> mapPaths;
     }
 }

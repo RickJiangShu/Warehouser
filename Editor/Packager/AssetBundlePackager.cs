@@ -20,7 +20,7 @@ namespace Plugins.Warehouser.Editor
         /// 打包
         /// </summary>
         /// <param name="packages"></param>
-        public static void Pack(List<AssetBundlePackage> packages)
+        public static void Pack(List<AssetBundlePackage> packages, string batchExtension)
         {
             foreach (AssetBundlePackage package in packages)
             {
@@ -34,7 +34,7 @@ namespace Plugins.Warehouser.Editor
                             FileInfo[] files = GetFiles(path);
                             foreach (FileInfo file in files)
                             {
-                                PackFile(file, package.assetBundleName, path);
+                                PackFile(file, package.assetBundleName, path, batchExtension);
                             }
                         }
                     }
@@ -185,14 +185,14 @@ namespace Plugins.Warehouser.Editor
         /// 打包单个文件
         /// </summary>
         /// <param name="path"></param>
-        private static void PackFile(FileInfo file, string packageName, string directoryPath = null)
+        private static void PackFile(FileInfo file, string packageName, string directoryPath = null, string batchExtension = "")
         {
             string assetPath = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", true, true);
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
             if (importer == null)
                 return;
 
-            string bundleName = GetBundleName(file.FullName, packageName, directoryPath);
+            string bundleName = GetBundleName(file.FullName, packageName, directoryPath, batchExtension);
             if (importer.assetBundleName == bundleName)
                 return;
 
@@ -230,7 +230,7 @@ namespace Plugins.Warehouser.Editor
         /// <param name="packageName"></param>
         /// <param name="directoryPath"></param>
         /// <returns></returns>
-        private static string GetBundleName(string fileFullName, string packageName, string directoryPath = null)
+        private static string GetBundleName(string fileFullName, string packageName, string directoryPath = null, string extension = "")
         {
             string bundleName;
             //无前缀
@@ -253,12 +253,12 @@ namespace Plugins.Warehouser.Editor
                     string relativePath = filePath.Substring(startIndex);
                     
                     
-                    bundleName = packageName + Path.ChangeExtension(relativePath, WarehouserWindow.EXTENSION);
+                    bundleName = packageName + Path.ChangeExtension(relativePath, extension);
                 }
                 else
                 {
                     string fileName = Path.GetFileName(fileFullName);
-                    bundleName = packageName + Path.ChangeExtension(fileName, WarehouserWindow.EXTENSION);
+                    bundleName = packageName + Path.ChangeExtension(fileName, extension);
                 }
             }
             return bundleName.ToLower();
