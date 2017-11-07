@@ -16,7 +16,7 @@ namespace Plugins.Warehouser.Editor
     /// <summary>
     /// 映射器编辑器
     /// </summary>
-    public class WarehouserWindow : EditorWindow
+    public class WarehouserWindow : EditorWindow, IHasCustomMenu
     {
         /// <summary>
         /// AssetBundle 后缀名
@@ -48,12 +48,20 @@ namespace Plugins.Warehouser.Editor
         {
             return EditorWindow.GetWindow<WarehouserWindow>("Warehouser");
         }
+        public void AddItemsToMenu(GenericMenu menu)
+	    {
+            GUIContent saveMenu = new GUIContent("Save");
+		    menu.AddItem(saveMenu, false, SaveSetting);
+        }
 
-        public void OnEnable()
+        void Awake()
         {
             LoadSetting();  
         }
-
+        void OnDestroy()
+        {
+            SaveSetting();
+        }
 
         public void OnGUI()
         {
@@ -107,7 +115,6 @@ namespace Plugins.Warehouser.Editor
             if (GUI.changed)
             {
                 so.ApplyModifiedProperties();
-                SaveSetting();
             }
         }
 
