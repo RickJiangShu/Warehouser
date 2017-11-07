@@ -6,6 +6,7 @@
  */
 namespace Plugins.Warehouser.Editor
 {
+    using UnityEngine;
     using System.Collections.Generic;
     /// <summary>
     /// Package

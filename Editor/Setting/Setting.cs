@@ -7,12 +7,13 @@
 namespace Plugins.Warehouser.Editor
 {
     using System.Collections.Generic;
+    using UnityEngine;
 
     /// <summary>
     /// RemSettings
     /// </summary>
     [System.Serializable]
-    public class Setting
+    public class Setting : ScriptableObject
     {
         /// <summary>
         /// 需要映射的路径

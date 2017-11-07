@@ -26,7 +26,7 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// 配置文件路径
         /// </summary>
-        public const string SETTING_PATH = "Assets/WarehouserSetting.json";
+        public const string SETTINGS_PATH = "Assets/WarehouserSettings.asset";
 
         /// <summary>
         /// Pairs路径
@@ -36,7 +36,7 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// 配置文件
         /// </summary>
-        public Setting setting;
+        public Setting settings;
 
         /// <summary>
         /// 滚动条坐标
@@ -52,22 +52,22 @@ namespace Plugins.Warehouser.Editor
 	    {
             GUIContent reloadMenu = new GUIContent("Reload");
             GUIContent saveMenu = new GUIContent("Save");
-            menu.AddItem(reloadMenu, false, LoadSetting);
-		    menu.AddItem(saveMenu, false, SaveSetting);
+            menu.AddItem(reloadMenu, false, LoadSettings);
+		    menu.AddItem(saveMenu, false, SaveSettings);
         }
 
         void Awake()
         {
-            LoadSetting();  
+            LoadSettings();  
         }
         void OnDestroy()
         {
-            SaveSetting();
+            SaveSettings();
         }
 
         public void OnGUI()
         {
-            SerializedObject so = new SerializedObject(this);
+            SerializedObject so = new SerializedObject(settings);
 
             EditorGUILayout.BeginVertical();
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
@@ -75,7 +75,7 @@ namespace Plugins.Warehouser.Editor
             //AB Packager
             GUILayout.Label("Asset Bundle Packager", EditorStyles.boldLabel);
 
-            SerializedProperty abPackages = so.FindProperty("setting.assetBundlePackages");
+            SerializedProperty abPackages = so.FindProperty("assetBundlePackages");
             EditorGUILayout.PropertyField(abPackages, true);
 
             EditorGUILayout.Space();
@@ -84,7 +84,7 @@ namespace Plugins.Warehouser.Editor
             GUILayout.Label("Mapper", EditorStyles.boldLabel);
 
             //显示MapPaths
-            SerializedProperty mapPathsProp = so.FindProperty("setting.mapPaths");
+            SerializedProperty mapPathsProp = so.FindProperty("mapPaths");
             EditorGUILayout.PropertyField(mapPathsProp, true);
             
             EditorGUILayout.Space();
@@ -93,17 +93,17 @@ namespace Plugins.Warehouser.Editor
 
             if(GUILayout.Button("Clear"))
             {
-                AssetBundlePackager.Clear(setting.assetBundlePackages);
+                AssetBundlePackager.Clear(settings.assetBundlePackages);
             }
 
             if (GUILayout.Button("Pack"))
             {
-                AssetBundlePackager.Pack(setting.assetBundlePackages);
+                AssetBundlePackager.Pack(settings.assetBundlePackages);
             }
 
             if (GUILayout.Button("Map"))
             {
-                MapperEditor.Map(setting.mapPaths.ToArray(), PAIRS_PATH);
+                MapperEditor.Map(settings.mapPaths.ToArray(), PAIRS_PATH);
             }
 
             if (GUILayout.Button("Build Asset Bundles"))
@@ -124,34 +124,30 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// 加载Setting
         /// </summary>
-        private void LoadSetting()
+        private void LoadSettings()
         {
-            if (File.Exists(SETTING_PATH))
+            settings = AssetDatabase.LoadAssetAtPath<Setting>(SETTINGS_PATH);
+            if (settings == null)
             {
-                string content = File.ReadAllText(SETTING_PATH);
-                setting = JsonUtility.FromJson<Setting>(content);
-            }
-            else
-            {
-                setting = new Setting();
-                SaveSetting();
+                settings = new Setting();
+                SaveSettings();
             }
         }
 
         /// <summary>
         /// 保存Setting
         /// </summary>
-        private void SaveSetting()
+        private void SaveSettings()
         {
-            string json = JsonUtility.ToJson(setting, true);
-            FileStream fileStream;
-            if (!File.Exists(SETTING_PATH))
+            UnityEngine.Object old = AssetDatabase.LoadMainAssetAtPath(SETTINGS_PATH);
+            if (old != null)
             {
-                fileStream = File.Create(SETTING_PATH);
-                fileStream.Close();
+                EditorUtility.CopySerialized(settings, old);
             }
-            File.WriteAllText(SETTING_PATH, json);
-            AssetDatabase.Refresh();
+            else
+            {
+                AssetDatabase.CreateAsset(settings, SETTINGS_PATH);
+            }
         }
 
         /// <summary>
