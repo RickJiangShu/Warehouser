@@ -373,6 +373,12 @@ public class Warehouser
     /// </summary>
     public static void Unload(string assetBundleName, bool unloadAllLoadedObjects)
     {
+#if UNITY_EDITOR
+        if (!assetBundles.ContainsKey(assetBundleName))
+        {
+            Debug.LogError("Unload: no found " + assetBundleName);
+        }
+#endif
         AssetBundle bundle = assetBundles[assetBundleName];
         bundle.Unload(unloadAllLoadedObjects);
         assetBundles.Remove(assetBundleName);
