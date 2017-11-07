@@ -16,7 +16,7 @@ namespace Plugins.Warehouser.Editor
     /// <summary>
     /// 映射器编辑器
     /// </summary>
-    public class WarehouserWindow : EditorWindow, IHasCustomMenu
+    public class WarehouserWindow : EditorWindow
     {
         /// <summary>
         /// 配置文件路径
@@ -43,21 +43,10 @@ namespace Plugins.Warehouser.Editor
         {
             return EditorWindow.GetWindow<WarehouserWindow>("Warehouser");
         }
-        public void AddItemsToMenu(GenericMenu menu)
-	    {
-            GUIContent reloadMenu = new GUIContent("Reload");
-            GUIContent saveMenu = new GUIContent("Save");
-            menu.AddItem(reloadMenu, false, LoadSettings);
-		    menu.AddItem(saveMenu, false, SaveSettings);
-        }
 
         void Awake()
         {
             LoadSettings();  
-        }
-        void OnDestroy()
-        {
-            SaveSettings();
         }
 
         public void OnGUI()
@@ -129,22 +118,6 @@ namespace Plugins.Warehouser.Editor
             if (settings == null)
             {
                 settings = new Setting();
-                SaveSettings();
-            }
-        }
-
-        /// <summary>
-        /// 保存Setting
-        /// </summary>
-        private void SaveSettings()
-        {
-            UnityEngine.Object old = AssetDatabase.LoadMainAssetAtPath(SETTINGS_PATH);
-            if (old != null)
-            {
-                EditorUtility.CopySerialized(settings, old);
-            }
-            else
-            {
                 AssetDatabase.CreateAsset(settings, SETTINGS_PATH);
             }
         }
