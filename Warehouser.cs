@@ -367,4 +367,14 @@ public class Warehouser
         assetBundles.Add(assetBundleName, bundle);
         return bundle;
     }
+
+    /// <summary>
+    /// 卸载AssetBundle
+    /// </summary>
+    public static void Unload(string assetBundleName, bool unloadAllLoadedObjects)
+    {
+        AssetBundle bundle = assetBundles[assetBundleName];
+        bundle.Unload(unloadAllLoadedObjects);
+        assetBundles.Remove(assetBundleName);
+    }
 }
