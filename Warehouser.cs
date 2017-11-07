@@ -33,21 +33,6 @@ public class Warehouser
     internal static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>();
 
     /// <summary>
-    /// Bundle中尚未加载的Asset数量
-    /// </summary>
-    internal static Dictionary<string, int> leftAssetCount = new Dictionary<string, int>();
-
-    /// <summary>
-    /// 等待下一帧卸载的Bundle
-    /// </summary>
-    internal static List<string> waitingUnloadBundles = new List<string>();
-
-    /// <summary>
-    /// 所有加载的Assets
-    /// </summary>
-    internal static Dictionary<string, Object> assets = new Dictionary<string, Object>();
-
-    /// <summary>
     /// 对象池中的所有对象
     /// </summary>
     internal static Dictionary<string, List<GameObject>> pool = new Dictionary<string, List<GameObject>>();
@@ -79,12 +64,6 @@ public class Warehouser
 
         //侦听内存不足事件
         Application.lowMemory += OnLowMemory;
-
-        //添加BundleUnloader
-    //    GameObject unloder = new GameObject("AssetBundleUnloader");
-   //     unloder.AddComponent<BundleUnloader>();
-   //     Object.DontDestroyOnLoad(unloder);
-
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         GameObject observer = new GameObject("Observer");
@@ -266,21 +245,6 @@ public class Warehouser
         }
     }
 
-    public static void ClearWithTag(string tag)
-    {
-        foreach (List<GameObject> objects in pool.Values)
-        {
-            for (int i = objects.Count - 1; i >= 0; i--)
-            {
-                if (objects[i].tag == tag)
-                {
-                    GameObject.Destroy(objects[i]);
-                    objects.RemoveAt(i);
-                }
-            }
-        }
-    }
-
     /// <summary>
     /// 获取图集上的精灵
     /// </summary>
@@ -308,10 +272,6 @@ public class Warehouser
     public static T GetAsset<T>(string name) where T : Object
     {
         Object asset;
-
-        //获取缓存
-        if (assets.TryGetValue(name, out asset))
-            return (T)asset;
 
         //获取路径
         string path;
@@ -375,16 +335,6 @@ public class Warehouser
             mat.shader = Shader.Find(shaderName);
         }
 #endif
-        //检测包中是否还有没加载的Asset，如果没有则销毁Bundle
-        int leftCount = --leftAssetCount[path];
-        if (leftCount == 0)
-        {
-            //下一帧销毁
-            waitingUnloadBundles.Add(path);
-        }
-
-        assets.Add(name, asset);
-
         return (T)asset;
     }
 
@@ -415,46 +365,6 @@ public class Warehouser
     {
         AssetBundle bundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/" + assetBundleName);
         assetBundles.Add(assetBundleName, bundle);
-
-        string[] assetNames = bundle.GetAllAssetNames();
-        leftAssetCount.Add(assetBundleName, assetNames.Length);
         return bundle;
-    }
-
-    public static void UnloadAsset(GameObject asset)
-    {
-        assets.Remove(asset.name);
-        GameObject.DestroyImmediate(asset, true);
-    }
-    /// <summary>
-    /// 卸载Asset
-    /// </summary>
-    /// <param name="asset"></param>
-    public static void UnloadAsset(Object asset)
-    {
-        assets.Remove(asset.name);
-        Resources.UnloadAsset(asset);
-    }
-
-
-    /// <summary>
-    /// AssetBundle卸载器（Windows下：从Bundle中加载一个Asset后， Bundle中的内容并未全部加载，而是下一帧加载，因此需要等待全部加载完后销毁）
-    /// </summary>
-    private class BundleUnloader : MonoBehaviour
-    {
-        void Update()
-        {
-            while (waitingUnloadBundles.Count > 0)
-            {
-                string name = waitingUnloadBundles[0];
-                AssetBundle bundle = assetBundles[name];
-
-                assetBundles.Remove(name);
-                leftAssetCount.Remove(name);
-                waitingUnloadBundles.RemoveAt(0);
-
-                bundle.Unload(false);
-            }
-        }
     }
 }
