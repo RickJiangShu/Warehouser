@@ -50,7 +50,9 @@ namespace Plugins.Warehouser.Editor
         }
         public void AddItemsToMenu(GenericMenu menu)
 	    {
+            GUIContent reloadMenu = new GUIContent("Reload");
             GUIContent saveMenu = new GUIContent("Save");
+            menu.AddItem(reloadMenu, false, LoadSetting);
 		    menu.AddItem(saveMenu, false, SaveSetting);
         }
 
