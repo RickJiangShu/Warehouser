@@ -28,6 +28,11 @@ public class Warehouser
     private static AssetBundleManifest manifest;
 
     /// <summary>
+    /// 路径映射
+    /// </summary>
+    private static Dictionary<string, string> paths = new Dictionary<string, string>();
+
+    /// <summary>
     /// 所有加载的Bundles
     /// </summary>
     internal static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>();
@@ -56,7 +61,11 @@ public class Warehouser
         
         //加载PathPairs
         Pairs pairs = Resources.Load<Pairs>("WarehouserPairs");
-        Mapper.Initialize(pairs);
+        for (int i = 0, l = pairs.Length; i < l; i++)
+        {
+            Pair pair = pairs[i];
+            paths.Add(pair.name, pair.path);
+        }
         Resources.UnloadAsset(pairs);
 
         //侦听图集引用请求
@@ -252,13 +261,13 @@ public class Warehouser
     /// <returns></returns>
     public static Sprite GetSprite(string name)
     {
-        string atlasName;
-        if (!Mapper.TryGetPath(name, out atlasName))
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (!paths.ContainsKey(name))
         {
             Debug.LogError("找不到引用的图集：" + name);
-            return null;
         }
-
+#endif
+        string atlasName = paths[name];
         SpriteAtlas atlas = GetAsset<SpriteAtlas>(atlasName);
         return atlas.GetSprite(name);
     }
@@ -273,21 +282,15 @@ public class Warehouser
     {
         Object asset;
 
-        //获取路径
-        string path;
-        if (!Mapper.TryGetPath(name, out path))
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (!paths.ContainsKey(name))
         {
             Debug.LogError("找不到映射的路径：" + name);
-            return null;
-        }
-
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (!Path.HasExtension(path))
-        {
-            Debug.LogError("获取图集上的精灵，使用Warehouser.GetSprite");
-            return null;
         }
 #endif
+
+        //获取路径
+        string path = paths[name];
 
         //AssetBundle 加载
         AssetBundle bundle;
@@ -373,7 +376,7 @@ public class Warehouser
     /// </summary>
     public static void Unload(string assetBundleName, bool unloadAllLoadedObjects)
     {
-#if UNITY_EDITOR
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (!assetBundles.ContainsKey(assetBundleName))
         {
             Debug.LogError("Unload: no found " + assetBundleName);
