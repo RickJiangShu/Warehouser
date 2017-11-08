@@ -61,7 +61,7 @@ namespace Plugins.Warehouser.Editor
             
             //extension
         //    GUILayout.Label("Default Extension:");
-            settings.batchExtension = EditorGUILayout.TextField("Batch Extension:", settings.batchExtension);
+            settings.extension = EditorGUILayout.TextField("Extension:", settings.extension);
 
             SerializedProperty abPackages = so.FindProperty("assetBundlePackages");
             EditorGUILayout.PropertyField(abPackages, true);
@@ -81,12 +81,12 @@ namespace Plugins.Warehouser.Editor
 
             if(GUILayout.Button("Clear"))
             {
-                AssetBundlePackager.Clear(settings.assetBundlePackages);
+                AssetBundlePackager.Clear(settings.assetBundlePackages, settings.extension);
             }
 
             if (GUILayout.Button("Pack"))
             {
-                AssetBundlePackager.Pack(settings.assetBundlePackages, settings.batchExtension);
+                AssetBundlePackager.Pack(settings.assetBundlePackages, settings.extension);
             }
 
             if (GUILayout.Button("Map"))

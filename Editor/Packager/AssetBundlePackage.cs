@@ -14,33 +14,30 @@ namespace Plugins.Warehouser.Editor
     [System.Serializable]
     public class AssetBundlePackage
     {
-        public PackMode packMode;
-        public string assetBundleName;
+        public string name;
         public List<string> paths;
 
-        /*
         public PackMode packMode
         {
             get
             {
-                int i = assetBundleName.Length - 1;
-                if (assetBundleName[i] == '/')
+                int i = name.Length - 1;
+                if (name[i] == '/')
                 {
-                    if (assetBundleName[i - 1] == '/')
-                        return PackMode.Children;
+                    if (name[i - 1] == '/')
+                        return PackMode.Top;
 
-                    return PackMode.Files;
+                    return PackMode.Deep;
                 }
                 return PackMode.One;
             }
         }
-         */
     }
 
     public enum PackMode
     {
-        One,//标准
-        Files,//递归
-        Children,//盒子
+        One,
+        Deep,
+        Top,
     }
 }

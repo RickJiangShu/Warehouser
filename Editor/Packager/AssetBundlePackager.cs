@@ -16,6 +16,29 @@ namespace Plugins.Warehouser.Editor
     /// </summary>
     public class AssetBundlePackager : ScriptableObject
     {
+        /// <summary>
+        /// 打包
+        /// </summary>
+        /// <param name="packages"></param>
+        public static void Pack(List<AssetBundlePackage> packages, string extension)
+        {
+            foreach (AssetBundlePackage package in packages)
+            {
+                switch (package.packMode)
+                {
+                    case PackMode.One:
+                        PackOne(package, extension);
+                        break;
+                    case PackMode.Deep:
+                        PackDeep(package, extension);
+                        break;
+                    case PackMode.Top:
+                        PackTop(package, extension);
+                        break;
+                }
+            }
+            Debug.Log("Pack Complete !");
+        }
 
         private static void PackOne(AssetBundlePackage package, string extension)
         {
@@ -26,18 +49,18 @@ namespace Plugins.Warehouser.Editor
                     FileInfo[] files = GetFiles(path, SearchOption.AllDirectories);
                     foreach (FileInfo file in files)
                     {
-                        PackFile(file, package.assetBundleName, extension);
+                        PackFile(file, package.name, extension);
                     }
                 }
                 else
                 {
                     FileInfo file = new FileInfo(path);
-                    PackFile(file, package.assetBundleName, extension);
+                    PackFile(file, package.name, extension);
                 }
             }
         }
 
-        private static void PackFiles(AssetBundlePackage package, string extension)
+        private static void PackDeep(AssetBundlePackage package, string extension)
         {
             foreach (string path in package.paths)
             {
@@ -54,76 +77,62 @@ namespace Plugins.Warehouser.Editor
                         int startIndex = filePath.IndexOf(path) + (path[length - 1] == '/' ? length : length + 1);
                         string relativePath = filePath.Substring(startIndex);
 
-                        string name = package.assetBundleName + relativePath;
+                        string name = package.name + relativePath;
                         PackFile(file, name, extension);
                     }
                 }
                 else
                 {
                     FileInfo file = new FileInfo(path);
-                    string name = package.assetBundleName + Path.GetFileNameWithoutExtension(file.FullName);
+                    string name = package.name + Path.GetFileNameWithoutExtension(file.FullName);
                     PackFile(file, name, extension);
                 }
             }
         }
 
-        private static void PackChildren(AssetBundlePackage package, string extension)
+        private static void PackTop(AssetBundlePackage package, string extension)
         {
-            foreach(string path in package.paths)
+            foreach (string path in package.paths)
             {
-                DirectoryInfo directory = new DirectoryInfo(path);
-                FileInfo[] childFiles = GetFiles(directory,SearchOption.TopDirectoryOnly);
-                DirectoryInfo[] childDirectories = directory.GetDirectories();
-
-                //打包子文件夹中的所有文件
-                foreach (DirectoryInfo childDirectory in childDirectories)
+                string relativePath = package.name.Remove(package.name.Length - 1, 1);
+                if (WarehouserUtils.IsDirectory(path))
                 {
-                    FileInfo[] files = GetFiles(childDirectory, SearchOption.AllDirectories);
-                    foreach (FileInfo file in files)
+                    DirectoryInfo directory = new DirectoryInfo(path);
+                    FileInfo[] childFiles = GetFiles(directory, SearchOption.TopDirectoryOnly);
+                    DirectoryInfo[] childDirectories = directory.GetDirectories();
+
+                    //打包子文件夹中的所有文件
+                    foreach (DirectoryInfo childDirectory in childDirectories)
                     {
-                        string name = package.assetBundleName + childDirectory.Name;
+                        FileInfo[] files = GetFiles(childDirectory, SearchOption.AllDirectories);
+                        foreach (FileInfo file in files)
+                        {
+                            string name = relativePath + childDirectory.Name;
+                            PackFile(file, name, extension);
+                        }
+                    }
+
+                    //打包文件夹下的子文件
+                    foreach (FileInfo file in childFiles)
+                    {
+                        string name = relativePath + Path.GetFileNameWithoutExtension(file.Name);
                         PackFile(file, name, extension);
                     }
                 }
-
-                //打包文件夹下的子文件
-                foreach(FileInfo file in childFiles)
+                else
                 {
-                    string name = package.assetBundleName + Path.GetFileNameWithoutExtension(file.Name);
+                    FileInfo file = new FileInfo(path);
+                    string name = relativePath + Path.GetFileNameWithoutExtension(file.Name);
                     PackFile(file, name, extension);
                 }
             }
-        }
-
-        /// <summary>
-        /// 打包
-        /// </summary>
-        /// <param name="packages"></param>
-        public static void Pack(List<AssetBundlePackage> packages, string extension)
-        {
-            foreach (AssetBundlePackage package in packages)
-            {
-                switch (package.packMode)
-                {
-                    case PackMode.One:
-                        PackOne(package, extension);
-                        break;
-                    case PackMode.Files:
-                        PackFiles(package, extension);
-                        break;
-                    case PackMode.Children:
-                        PackChildren(package, extension);
-                        break;
-                }
-            }
-            Debug.Log("Pack Complete !");
         }
 
         /// <summary>
         /// 清理不用的AssetBundle
         /// </summary>
         /// <param name="packages"></param>
-        public static void Clear(List<AssetBundlePackage> packages)
+        public static void Clear(List<AssetBundlePackage> packages, string extension)
         {
             //删除不在包中的BundleName
             string[] bundleNames = AssetDatabase.GetAllAssetBundleNames();
@@ -131,15 +140,14 @@ namespace Plugins.Warehouser.Editor
             {
                 string bundleName = bundleNames[i];
 
-                //找到对应Package
+                //1. 对packageName进行对比
                 AssetBundlePackage inPackage = null;
                 foreach (AssetBundlePackage package in packages)
                 {
-                    string packageName = package.assetBundleName.ToLower();
-                    /*
-                    if (!IsPrefix(packageName))
+                    if (package.packMode == PackMode.One)
                     {
-                        if (bundleName == packageName)
+                        string fullName = package.name + extension;
+                        if (bundleName == fullName)
                         {
                             inPackage = package;
                             break;
@@ -147,13 +155,13 @@ namespace Plugins.Warehouser.Editor
                     }
                     else
                     {
-                        if (bundleName.StartsWith(packageName))
+                        string prefix = package.packMode == PackMode.Deep ? package.name : package.name.Remove(package.name.Length - 1);
+                        if (bundleName.StartsWith(prefix))
                         {
                             inPackage = package;
                             break;
                         }
                     }
-                     */
                 }
 
                 //如果找不到包
@@ -163,6 +171,8 @@ namespace Plugins.Warehouser.Editor
                     Debug.Log("Clear Package:" + bundleName);
                     continue;
                 }
+
+                //2. 找到Bundle中每个AssetPath，看是否包含在paths中
 
                 //找到该AssetBundle中所有Asset的路径
                 string[] assets = AssetDatabase.GetAssetPathsFromAssetBundle(bundleName);
@@ -203,8 +213,8 @@ namespace Plugins.Warehouser.Editor
                 FileInfo[] manifests = directory.GetFiles("*.*", SearchOption.AllDirectories);
                 foreach (FileInfo file in manifests)
                 {
-                    string extension = Path.GetExtension(file.FullName);
-                    if (extension == ".meta" || extension == ".manifest")
+                    string fileEx = Path.GetExtension(file.FullName);
+                    if (fileEx == ".meta" || fileEx == ".manifest")
                         continue;
                        
 
@@ -216,8 +226,9 @@ namespace Plugins.Warehouser.Editor
                     if (!userdNames.Contains(bundleName))
                     {
                         string bundlePath = Path.ChangeExtension(file.FullName, null);
-                        File.Delete(bundlePath);
+                       // File.Delete(bundlePath);
                         File.Delete(file.FullName);
+                        File.Delete(file.FullName + ".manifest");
                         Debug.Log("Clear StreamingAsset:" + bundleName);
                     }
                 }
@@ -261,83 +272,14 @@ namespace Plugins.Warehouser.Editor
             if (importer.assetBundleName == bundleName)
                 return;
 
-          //  importer.assetBundleName = bundleName;
-            Debug.Log("Pack: " + file.Name + " to " + bundleName);
-        }
-
-        /// <summary>
-        /// 打包单个文件
-        /// </summary>
-        /// <param name="path"></param>
-        /*
-        private static void PackFile(FileInfo file, string packageName, string directoryPath = null, string batchExtension = "")
-        {
-            string assetPath = WarehouserUtils.ConvertUnixPath(file.FullName, "Assets", true, true);
-            AssetImporter importer = AssetImporter.GetAtPath(assetPath);
-            if (importer == null)
-                return;
-
-            string bundleName = GetBundleName(file.FullName, packageName, directoryPath, batchExtension);
-            if (importer.assetBundleName == bundleName)
-                return;
-
             importer.assetBundleName = bundleName;
             Debug.Log("Pack: " + file.Name + " to " + bundleName);
         }
-         */
-
-
-        
-
-        /// <summary>
-        /// 获取BundleName
-        /// </summary>
-        /// <param name="fileFullName"></param>
-        /// <param name="packageName"></param>
-        /// <param name="directoryPath"></param>
-        /// <returns></returns>
-        /// 
-        /*
-        private static string GetBundleName(string fileFullName, string packageName, string directoryPath = null, string extension = "")
-        {
-            string bundleName;
-            //无前缀
-            if (!IsPrefix(packageName))
-            {
-                bundleName = packageName;
-            }
-            //有前缀
-            else
-            {
-                //目录下的子文件
-                if (!string.IsNullOrEmpty(directoryPath))
-                {
-                    string filePath = fileFullName;
-#if UNITY_EDITOR_WIN
-                    filePath = WarehouserUtils.ConverSeparator(filePath);
-#endif
-                    int length = directoryPath.Length;
-                    int startIndex = filePath.IndexOf(directoryPath) + (directoryPath[length - 1] == '/' ? length : length + 1);
-                    string relativePath = filePath.Substring(startIndex);
-                    
-                    
-                    bundleName = packageName + Path.ChangeExtension(relativePath, extension);
-                }
-                else
-                {
-                    string fileName = Path.GetFileName(fileFullName);
-                    bundleName = packageName + Path.ChangeExtension(fileName, extension);
-                }
-            }
-            return bundleName.ToLower();
-        }
-         */
 
         private static string GetBundleName(string name, string extension)
         {
             return (name + extension).ToLower();
         }
-
 
         /// <summary>
         /// 通过路径获取文件

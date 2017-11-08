@@ -18,7 +18,7 @@ namespace Plugins.Warehouser.Editor
         /// <summary>
         /// 批处理时的后缀名
         /// </summary>
-        public string batchExtension = ".ab";
+        public string extension = ".ab";
 
         /// <summary>
         /// AB包
