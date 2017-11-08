@@ -19,6 +19,11 @@ namespace Plugins.Warehouser.Observer
     public class ObserverWindow : MonoBehaviour
     {
         /// <summary>
+        /// 默认分辨率
+        /// </summary>
+        private Vector2 designResolution = new Vector2(499f, 888f);
+
+        /// <summary>
         /// 是否显示
         /// </summary>
         private bool detailVisible = false;
@@ -91,6 +96,11 @@ namespace Plugins.Warehouser.Observer
 
         public void OnGUI()
         {
+            //分辨率
+            float resX = Screen.width / designResolution.x;
+            float resY = Screen.height / designResolution.y;
+            GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(resX, resY, 1));
+
             if (memoryWarningCount > 0)
             {
                 GUIStyle warningStyle = new GUIStyle();
@@ -101,7 +111,7 @@ namespace Plugins.Warehouser.Observer
             }
 
             string baseInfo = "";
-
+            
             //Time
             int seconds = (int)(Time.realtimeSinceStartup - startTime);
             baseInfo += "Time:\t" + string.Format("{0:00}:{1:00}", seconds / 60, seconds % 60);
