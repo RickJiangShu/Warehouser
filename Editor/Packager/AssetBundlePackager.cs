@@ -229,6 +229,9 @@ namespace Plugins.Warehouser.Editor
                        // File.Delete(bundlePath);
                         File.Delete(file.FullName);
                         File.Delete(file.FullName + ".manifest");
+                        File.Delete(file.FullName + ".meta");
+                        File.Delete(file.FullName + ".manifest.meta");
+
                         Debug.Log("Clear StreamingAsset:" + bundleName);
                     }
                 }
