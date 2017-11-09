@@ -112,9 +112,12 @@ namespace Plugins.Warehouser.Observer
 
             string baseInfo = "";
             
+            //Version
+            baseInfo += "Version:\t" + Application.version;
+
             //Time
             int seconds = (int)(Time.realtimeSinceStartup - startTime);
-            baseInfo += "Time:\t" + string.Format("{0:00}:{1:00}", seconds / 60, seconds % 60);
+            baseInfo += "\nTime:\t" + string.Format("{0:00}:{1:00}", seconds / 60, seconds % 60);
 
             //FPS
             baseInfo += "\nFPS:\t" + fps.ToString("0.0");
