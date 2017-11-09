@@ -16,7 +16,7 @@ namespace Plugins.Warehouser.Observer
     /// <summary>
     /// 观察者窗口
     /// </summary>
-    public class ObserverWindow : MonoBehaviour
+    public class Observer : MonoBehaviour
     {
         /// <summary>
         /// 默认分辨率

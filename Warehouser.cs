@@ -76,7 +76,7 @@ public class Warehouser
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         GameObject observer = new GameObject("Observer");
-        observer.AddComponent<ObserverWindow>();
+        observer.AddComponent<Observer>();
         Object.DontDestroyOnLoad(observer);
 #endif
     }
@@ -87,7 +87,7 @@ public class Warehouser
     private static void OnLowMemory()
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        ObserverWindow.memoryWarningCount++;
+        Observer.memoryWarningCount++;
 #endif
 
         //清空对象池
