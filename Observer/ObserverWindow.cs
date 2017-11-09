@@ -57,21 +57,59 @@ namespace Plugins.Warehouser.Observer
         /// 内存警告错误
         /// </summary>
         public static int memoryWarningCount = 0;
-        
+
+        /// <summary>
+        /// 报错次数
+        /// </summary>
+        public int errorCount = 0;
+
+        /// <summary>
+        /// 错误信息
+        /// </summary>
+        private string errorInfo = "";
+
+        /// <summary>
+        /// 开始时间
+        /// </summary>
+        private float startTime = 0;
+
         /// <summary>
         /// 滑动位置
         /// </summary>
         private Vector2[] scrollPositions = new Vector2[3];
 
         /// <summary>
-        /// 开始时间
+        /// 警告样式
         /// </summary>
-        private static float startTime = 0;
+        private GUIStyle warningStyle;
+
+        void Awake()
+        {
+            warningStyle = new GUIStyle();
+            warningStyle.fontStyle = FontStyle.Bold;
+            warningStyle.fontSize = 16;
+            warningStyle.normal.textColor = Color.red;
+
+            if (Application.isMobilePlatform)
+            {
+                Application.logMessageReceivedThreaded += OnReceiveLogMessage;
+            }
+        }
+
 
         void Start()
         {
             startTime = Time.realtimeSinceStartup;
             fpsNextUpdate = Time.time;
+        }
+
+        void OnReceiveLogMessage(string condition, string stackTrace, LogType type)
+        {
+            if (type == LogType.Log || type == LogType.Warning)
+                return;
+
+            errorCount++;
+            errorInfo += condition + "\n" + stackTrace + "\n";
         }
 
         void Update()
@@ -101,12 +139,13 @@ namespace Plugins.Warehouser.Observer
             float resY = Screen.height / designResolution.y;
             GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(resX, resY, 1));
 
+            if (errorCount > 0)
+            {
+                GUILayout.Label("Error: " + errorCount, warningStyle);
+            }
+
             if (memoryWarningCount > 0)
             {
-                GUIStyle warningStyle = new GUIStyle();
-                warningStyle.fontStyle = FontStyle.Bold;
-                warningStyle.fontSize = 16;
-                warningStyle.normal.textColor = Color.red;
                 GUILayout.Label("Memory Warrning: " + memoryWarningCount, warningStyle);
             }
 
@@ -266,10 +305,18 @@ namespace Plugins.Warehouser.Observer
                 }
 
                 GUILayout.Space(4f);
-                scrollPositions[2] = GUILayout.BeginScrollView(scrollPositions[2], GUILayout.Width(300), GUILayout.Height(100));
+                scrollPositions[1] = GUILayout.BeginScrollView(scrollPositions[1], GUILayout.Width(300), GUILayout.Height(100));
                 GUILayout.TextField(detailInfo.Remove(detailInfo.Length - 1, 1));
                 GUILayout.EndScrollView();
                 #endregion
+            
+                //Errors
+                if (errorCount > 0)
+                {
+                    scrollPositions[2] = GUILayout.BeginScrollView(scrollPositions[2]);
+                    GUILayout.TextArea(errorInfo.Remove(errorInfo.Length - 2));
+                    GUILayout.EndScrollView();
+                }
             }
         }
 
