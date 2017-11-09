@@ -210,19 +210,10 @@ namespace Plugins.Warehouser.Editor
             if (directory.Exists)
             {
                 List<string> userdNames = new List<string>(AssetDatabase.GetAllAssetBundleNames());
-                FileInfo[] manifests = directory.GetFiles("*.*", SearchOption.AllDirectories);
-                foreach (FileInfo file in manifests)
+                FileInfo[] bundleFiles = directory.GetFiles("*" + extension, SearchOption.AllDirectories);
+                foreach (FileInfo file in bundleFiles)
                 {
-                    string fileEx = Path.GetExtension(file.FullName);
-                    if (fileEx == ".meta" || fileEx == ".manifest")
-                        continue;
-                       
-
                     string bundleName = WarehouserUtils.ConvertUnixPath(file.FullName, "StreamingAssets", false, true);
-                    if (bundleName == "StreamingAssets")
-                        continue;
-
-                    //
                     if (!userdNames.Contains(bundleName))
                     {
                         string bundlePath = Path.ChangeExtension(file.FullName, null);
