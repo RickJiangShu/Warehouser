@@ -21,7 +21,7 @@ namespace Plugins.Warehouser.Observer
         /// <summary>
         /// 默认分辨率
         /// </summary>
-        private Vector2 designResolution = new Vector2(499f, 888f);
+        //private Vector2 designResolution = new Vector2(499f, 888f);
 
         /// <summary>
         /// 是否显示
@@ -114,6 +114,7 @@ namespace Plugins.Warehouser.Observer
 
         void Update()
         {
+
             if (Time.time > fpsNextUpdate)
             {
                 fps = 1.0f / Time.deltaTime;
@@ -130,14 +131,15 @@ namespace Plugins.Warehouser.Observer
                 Debug.Log("GetTotalUnusedReservedMemoryLong:" + Profiler.GetTotalUnusedReservedMemoryLong() / 1048576);
                  */
             }
+
         }
 
         public void OnGUI()
         {
-            //分辨率
-            float resX = Screen.width / designResolution.x;
-            float resY = Screen.height / designResolution.y;
-            GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(resX, resY, 1));
+            //分辨率（会影响布局）
+        //    float resX = Screen.width / designResolution.x;
+        //    float resY = Screen.height / designResolution.y;
+        //    GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(resX, resY, 1));
 
             if (errorCount > 0)
             {
