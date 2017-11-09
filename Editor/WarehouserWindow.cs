@@ -131,7 +131,9 @@ namespace Plugins.Warehouser.Editor
                 {
                     long size = file.Length;
                     total += size;
-                    output += Observer.ConvertBytes(size) + "\t" + file.Name + "\n";
+
+                    string bundleName = WarehouserUtils.ConvertUnixPath(file.FullName, "StreamingAssets", false, true);
+                    output += Observer.ConvertBytes(size) + "\t" + bundleName + "\n";
                 }
 
                 global::Warehouser.Log("StreamingAssets Files: " + bundleFiles.Count + " Size: " + Observer.ConvertBytes(total) + "\n" + output);
