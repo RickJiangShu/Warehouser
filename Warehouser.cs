@@ -273,6 +273,25 @@ public class Warehouser
     }
 
     /// <summary>
+    /// 异步获取Asset
+    /// </summary>
+    /// <returns></returns>
+    public static object GetAssetAsync<T>(string name, Action<T> callback)
+    {
+        /*
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (!paths.ContainsKey(name))
+        {
+            Log("找不到映射的路径：" + name);
+        }
+#endif
+        string path = paths[name];
+        */
+
+        return null;
+    }
+
+    /// <summary>
     /// 获取Asset
     /// </summary>
     /// <typeparam name="T"></typeparam>
@@ -385,5 +404,22 @@ public class Warehouser
         AssetBundle bundle = assetBundles[assetBundleName];
         bundle.Unload(unloadAllLoadedObjects);
         assetBundles.Remove(assetBundleName);
+    }
+
+    internal static void Log(string content, LogType type = LogType.Log)
+    {
+        string output = "[Warehouser] " + content;
+        switch (type)
+        {
+            case LogType.Warning:
+                Debug.LogWarning(content);
+                break;
+            case LogType.Error:
+                Debug.LogError(content);
+                break;
+            default:
+                Debug.Log(content);
+                break;
+        }
     }
 }
