@@ -10,6 +10,7 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 using System.Text;
+using Plugins.Warehouser.Observer;
 
 namespace Plugins.Warehouser.Editor
 {
@@ -105,6 +106,26 @@ namespace Plugins.Warehouser.Editor
             if (GUI.changed)
             {
                 so.ApplyModifiedProperties();
+            }
+        }
+
+        /// <summary>
+        /// 打印StreamingAsset体积
+        /// </summary>
+        /// <param name="extension"></param>
+        private void Print(string extension)
+        {
+            DirectoryInfo directory = new DirectoryInfo(Application.streamingAssetsPath);
+            if (directory.Exists)
+            {
+                FileInfo[] bundleFiles = directory.GetFiles("*" + extension, SearchOption.AllDirectories);
+                foreach (FileInfo file in bundleFiles)
+                {
+                    long size = file.Length;
+
+                }
+
+                //清除空文件夹
             }
         }
 
