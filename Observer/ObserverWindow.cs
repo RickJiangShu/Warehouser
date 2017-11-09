@@ -83,6 +83,11 @@ namespace Plugins.Warehouser.Observer
         /// </summary>
         private GUIStyle warningStyle;
 
+        /// <summary>
+        /// 内存计算结果缓存，防止重复计算
+        /// </summary>
+        private Dictionary<string, long> resultCache = new Dictionary<string, long>();
+
         void Awake()
         {
             warningStyle = new GUIStyle();
@@ -114,7 +119,6 @@ namespace Plugins.Warehouser.Observer
 
         void Update()
         {
-
             if (Time.time > fpsNextUpdate)
             {
                 fps = 1.0f / Time.deltaTime;
@@ -172,7 +176,6 @@ namespace Plugins.Warehouser.Observer
             //Objects
             int objectCount = 0;
             int poolCount = 0;
-            long objectMemory = 0;
             Dictionary<string, List<GameObject>> all = global::Warehouser.allObjects;
             Dictionary<string, List<GameObject>> pool = global::Warehouser.pool;
             foreach (string name in all.Keys)
@@ -185,21 +188,21 @@ namespace Plugins.Warehouser.Observer
                     objectCount++;
                     if (pool.ContainsKey(name) && pool[name].Contains(obj))
                         poolCount++;
-
-                    objectMemory += Profiler.GetRuntimeMemorySizeLong(obj);
                 }
             }
 
             baseInfo += "\nObjects:\t" + (objectCount - poolCount) + " / " + poolCount + " / " + objectCount;
-            if (objectMemory > 0f)
-                baseInfo += " (" + MemoryOutputFormat(objectMemory) + ")";
 
             //Bundles
             Dictionary<string, AssetBundle> bundles = global::Warehouser.assetBundles;
             long bundlesMemory = 0;
             foreach (AssetBundle bundle in bundles.Values)
             {
-                bundlesMemory += Profiler.GetRuntimeMemorySizeLong(bundle);
+                long m;
+                if(!resultCache.TryGetValue(bundle.name, out m))
+                    m = Profiler.GetRuntimeMemorySizeLong(bundle);
+
+                bundlesMemory += m;
             }
             baseInfo += "\nBundles:\t" + bundles.Keys.Count + " (" + MemoryOutputFormat(bundlesMemory) + ")";
 
@@ -219,12 +222,12 @@ namespace Plugins.Warehouser.Observer
                 regex = GUILayout.TextField(regex);
 
                 #region Count Objects
-                List<ObjectCounter> objectCounters = new List<ObjectCounter>();
+                List<Counter> objectCounters = new List<Counter>();
 
                 //填入Counter
                 foreach (string name in all.Keys)
                 {
-                    ObjectCounter counter = new ObjectCounter();
+                    Counter counter = new Counter();
                     counter.name = name;
                     counter.count = 0;
 
@@ -243,7 +246,6 @@ namespace Plugins.Warehouser.Observer
                         catch { };
 
                         counter.count++;
-                        counter.memory += Profiler.GetRuntimeMemorySizeLong(obj);
                         if (pool.ContainsKey(name))
                         {
                             counter.poolCount = pool[name].Count;
@@ -259,14 +261,14 @@ namespace Plugins.Warehouser.Observer
                 }
 
                 //排序
-                objectCounters.Sort(SortMemory);
+                objectCounters.Sort(SortCount);
 
                 detailInfo = "Objects:\n";
 
                 //写入文本
-                foreach (ObjectCounter counter in objectCounters)
+                foreach (Counter counter in objectCounters)
                 {
-                    detailInfo += MemoryOutputFormat(counter.memory) + "\t" +　(counter.count - counter.poolCount) + "/" + counter.poolCount + "/" + counter.count + "\t" + counter.name + "\n";
+                    detailInfo += (counter.count - counter.poolCount) + "/" + counter.poolCount + "/" + counter.count + "\t" + counter.name + "\n";
                 }
 
                 scrollPositions[0] = GUILayout.BeginScrollView(scrollPositions[0], GUILayout.Width(300), GUILayout.Height(100));
@@ -291,14 +293,18 @@ namespace Plugins.Warehouser.Observer
 
                     Counter counter = new Counter();
                     counter.name = name;
-                    counter.memory = Profiler.GetRuntimeMemorySizeLong(bundle);
+                    long m;
+                    if (!resultCache.TryGetValue(bundle.name, out m))
+                        m = Profiler.GetRuntimeMemorySizeLong(bundle);
+
+                    counter.memory = m;
                     bundleCounters.Add(counter);
                 }
 
                 //排序
                 bundleCounters.Sort(SortMemory);
 
-                detailInfo = "Bundles:\n";
+                detailInfo = "Asset Bundles:\n";
 
                 //写入文本
                 foreach (Counter counter in bundleCounters)
@@ -322,6 +328,16 @@ namespace Plugins.Warehouser.Observer
             }
         }
 
+        private int SortCount(Counter a, Counter b)
+        {
+            if (a.count > b.count)
+                return -1;
+            else if (b.count > a.count)
+                return 1;
+            else
+                return 0;
+        }
+
         private int SortMemory(Counter a, Counter b)
         {
             if (a.memory > b.memory)
@@ -335,20 +351,14 @@ namespace Plugins.Warehouser.Observer
         /// <summary>
         /// 计数器
         /// </summary>
-        private class Counter
+        private struct Counter
         {
             public string name;
             public int count;
+            public int poolCount;
             public long memory;
         }
 
-        /// <summary>
-        /// 对象计数器
-        /// </summary>
-        private class ObjectCounter : Counter
-        {
-            public int poolCount;
-        }
 
         /// <summary>
         /// 内存输出格式化
