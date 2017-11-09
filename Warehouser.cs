@@ -13,10 +13,6 @@ using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 using Plugins.Warehouser;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-using Plugins.Warehouser.Observer;
-#endif
-
 /// <summary>
 /// 资源管理器 
 /// </summary>
@@ -406,19 +402,19 @@ public class Warehouser
         assetBundles.Remove(assetBundleName);
     }
 
-    internal static void Log(string content, LogType type = LogType.Log)
+    public static void Log(string content, LogType type = LogType.Log)
     {
         string output = "[Warehouser] " + content;
         switch (type)
         {
             case LogType.Warning:
-                Debug.LogWarning(content);
+                Debug.LogWarning(output);
                 break;
             case LogType.Error:
-                Debug.LogError(content);
+                Debug.LogError(output);
                 break;
             default:
-                Debug.Log(content);
+                Debug.Log(output);
                 break;
         }
     }

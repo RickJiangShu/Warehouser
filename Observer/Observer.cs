@@ -5,7 +5,7 @@
  * Follow:  https://github.com/RickJiangShu
  */
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-namespace Plugins.Warehouser.Observer
+namespace Plugins.Warehouser
 {
     using System.Collections;
     using System.Collections.Generic;
@@ -204,7 +204,7 @@ namespace Plugins.Warehouser.Observer
 
                 bundlesMemory += m;
             }
-            baseInfo += "\nBundles:\t" + bundles.Keys.Count + " (" + MemoryOutputFormat(bundlesMemory) + ")";
+            baseInfo += "\nBundles:\t" + bundles.Keys.Count + " (" + ConvertBytes(bundlesMemory) + ")";
 
            
             //显示baseInfo
@@ -309,7 +309,7 @@ namespace Plugins.Warehouser.Observer
                 //写入文本
                 foreach (Counter counter in bundleCounters)
                 {
-                    detailInfo += MemoryOutputFormat(counter.memory) + "\t" + counter.name + "\n";
+                    detailInfo += ConvertBytes(counter.memory) + "\t" + counter.name + "\n";
                 }
 
                 GUILayout.Space(4f);
@@ -363,26 +363,26 @@ namespace Plugins.Warehouser.Observer
         /// <summary>
         /// 内存输出格式化
         /// </summary>
-        /// <param name="memory"></param>
+        /// <param name="bytes"></param>
         /// <returns></returns>
-        private string MemoryOutputFormat(long memory)
+        public static string ConvertBytes(long bytes)
         {
-            if (memory < 1024)
+            if (bytes < 1024)
             {
-                return memory.ToString() + " B";
+                return bytes.ToString() + " B";
             }
 
-            if (memory < 1048576)
+            if (bytes < 1048576)
             {
-                return (memory / 1024f).ToString("0.0") + " K";
+                return (bytes / 1024f).ToString("0.0") + " K";
             }
 
-            if (memory < 1073741824)
+            if (bytes < 1073741824)
             {
-                return (memory / 1048576f).ToString("0.0") + " M";
+                return (bytes / 1048576f).ToString("0.0") + " M";
             }
 
-            return (memory / 1073741824f).ToString("0.0") + " G";
+            return (bytes / 1073741824f).ToString("0.0") + " G";
         }
     }
 }

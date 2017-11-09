@@ -10,7 +10,6 @@ using System.IO;
 using UnityEngine;
 using UnityEditor;
 using System.Text;
-using Plugins.Warehouser.Observer;
 
 namespace Plugins.Warehouser.Editor
 {
@@ -80,6 +79,11 @@ namespace Plugins.Warehouser.Editor
 
             GUILayout.Label("Operation", EditorStyles.boldLabel);
 
+            if (GUILayout.Button("Print"))
+            {
+                Print(settings.extension);
+            }
+
             if(GUILayout.Button("Clear"))
             {
                 AssetBundlePackager.Clear(settings.assetBundlePackages, settings.extension);
@@ -118,15 +122,35 @@ namespace Plugins.Warehouser.Editor
             DirectoryInfo directory = new DirectoryInfo(Application.streamingAssetsPath);
             if (directory.Exists)
             {
-                FileInfo[] bundleFiles = directory.GetFiles("*" + extension, SearchOption.AllDirectories);
+                List<FileInfo> bundleFiles = new List<FileInfo>(directory.GetFiles("*" + extension, SearchOption.AllDirectories));
+                bundleFiles.Sort(SortBytes);
+
+                string output = "";
+                long total = 0;
                 foreach (FileInfo file in bundleFiles)
                 {
                     long size = file.Length;
-
+                    total += size;
+                    output += Observer.ConvertBytes(size) + "\t" + file.Name + "\n";
                 }
 
-                //清除空文件夹
+                global::Warehouser.Log("StreamingAssets Files: " + bundleFiles.Count + " Size: " + Observer.ConvertBytes(total) + "\n" + output);
+             //   Debug.Log(Observer.ConvertBytes(total) + "\tTotal");
             }
+        }
+
+        /// <summary>
+        /// 根据文件大小排序
+        /// </summary>
+        /// <returns></returns>
+        private int SortBytes(FileInfo a, FileInfo b)
+        {
+            if (a.Length > b.Length)
+                return -1;
+            else if (a.Length < b.Length)
+                return 1;
+            else
+                return 0;
         }
 
 

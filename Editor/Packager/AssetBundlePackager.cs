@@ -37,7 +37,7 @@ namespace Plugins.Warehouser.Editor
                         break;
                 }
             }
-            Debug.Log("Pack Complete !");
+            global::Warehouser.Log("Pack Complete !");
         }
 
         private static void PackOne(AssetBundlePackage package, string extension)
@@ -168,7 +168,7 @@ namespace Plugins.Warehouser.Editor
                 if (inPackage == null)
                 {
                     AssetDatabase.RemoveAssetBundleName(bundleName, true);//该bundleName根本不存在
-                    Debug.Log("Clear Package:" + bundleName);
+                    global::Warehouser.Log("Clear Package:" + bundleName);
                     continue;
                 }
 
@@ -197,7 +197,7 @@ namespace Plugins.Warehouser.Editor
                             continue;
 
                         importer.assetBundleName = null;//bundleName存在于Package中，但该Asset的路径不包含在Paths中
-                        Debug.Log("Clear AssetBundleName:" + asset);
+                        global::Warehouser.Log("Clear AssetBundleName:" + asset);
                     }
                 }
             }
@@ -223,7 +223,7 @@ namespace Plugins.Warehouser.Editor
                         File.Delete(file.FullName + ".meta");
                         File.Delete(file.FullName + ".manifest.meta");
 
-                        Debug.Log("Clear StreamingAsset:" + bundleName);
+                        global::Warehouser.Log("Clear StreamingAsset:" + bundleName);
                     }
                 }
 
@@ -233,7 +233,7 @@ namespace Plugins.Warehouser.Editor
 
             AssetDatabase.Refresh();
 
-            Debug.Log("Clear Complete !");
+            global::Warehouser.Log("Clear Complete !");
         }
 
         /// <summary>
@@ -250,7 +250,7 @@ namespace Plugins.Warehouser.Editor
                 {
                     Directory.Delete(directory, false);
                     File.Delete(directory + ".meta");
-                    Debug.Log("Clear Empty Directory:" + directory);
+                    global::Warehouser.Log("Clear Empty Directory:" + directory);
                 }
             }
         }
@@ -267,7 +267,7 @@ namespace Plugins.Warehouser.Editor
                 return;
 
             importer.assetBundleName = bundleName;
-            Debug.Log("Pack: " + file.Name + " to " + bundleName);
+            global::Warehouser.Log("Pack: " + file.Name + " to " + bundleName);
         }
 
         private static string GetBundleName(string name, string extension)
