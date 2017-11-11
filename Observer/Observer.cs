@@ -330,7 +330,7 @@ namespace Plugins.Warehouser
                     bundlesInfoBuilder.Append(ConvertBytes(counter.memory) + "\t" + counter.name + "\n");
                 }
 
-                bundlesInfo = bundlesInfoBuilder.Remove(infoBuilder.Length - 1, 1).ToString();
+                bundlesInfo = bundlesInfoBuilder.Remove(bundlesInfoBuilder.Length - 1, 1).ToString();
                 #endregion
             }
         }
