@@ -95,6 +95,18 @@ namespace Plugins.Warehouser
         private string info;
         private StringBuilder infoBuilder = new StringBuilder();
 
+        /// <summary>
+        /// 对象详情信息
+        /// </summary>
+        private string objectsInfo;
+        private StringBuilder objectsInfoBuilder = new StringBuilder();
+
+        /// <summary>
+        /// AB 详情信息
+        /// </summary>
+        private string bundlesInfo;
+        private StringBuilder bundlesInfoBuilder = new StringBuilder();
+
 
         void Awake()
         {
@@ -130,7 +142,7 @@ namespace Plugins.Warehouser
             if (Time.time > nextUpdateTime)
             {
                 fps = 1.0f / Time.deltaTime;
-                info = CalcBaseInfo();
+                CalcInfo();
 
                 nextUpdateTime += 1.0f;
                 /*
@@ -149,7 +161,7 @@ namespace Plugins.Warehouser
         }
 
 
-        private string CalcBaseInfo()
+        private void CalcInfo()
         {
             //Clear
             infoBuilder.Length = 0;
@@ -220,54 +232,20 @@ namespace Plugins.Warehouser
                 .Append(ConvertBytes(bundlesMemory))
                 .Append(")");
 
-            return infoBuilder.ToString();
-        }
+            info = infoBuilder.ToString();
 
-        public void OnGUI()
-        {
-            //分辨率（会影响布局）
-        //    float resX = Screen.width / designResolution.x;
-        //    float resY = Screen.height / designResolution.y;
-        //    GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(resX, resY, 1));
-
-            if (errorCount > 0)
-            {
-                GUILayout.Label("Error: " + errorCount, warningStyle);
-            }
-
-            if (memoryWarningCount > 0)
-            {
-                GUILayout.Label("Memory Warrning: " + memoryWarningCount, warningStyle);
-            }
-
-
-            Dictionary<string, List<GameObject>> all = global::Warehouser.allObjects;
-            Dictionary<string, List<GameObject>> pool = global::Warehouser.pool;
-            Dictionary<string, AssetBundle> bundles = global::Warehouser.assetBundles;
-
-             
-           
-            //显示baseInfo
-            GUILayout.TextField(infoBuilder.ToString());
-
-            if (GUILayout.Button("Detail"))
-            {
-                detailVisible = !detailVisible;
-            }
-
+            //计算详情
             if (detailVisible)
             {
-                regex = GUILayout.TextField(regex);
-
                 #region Count Objects
-                infoBuilder.Length = 0;
+                objectsInfoBuilder.Length = 0;
 
                 List<Counter> objectCounters = new List<Counter>();
 
                 //填入Counter
                 foreach (string name in all.Keys)
                 {
-                    Counter counter = Counter.Pull();
+                    Counter counter = new Counter();
                     counter.name = name;
                     counter.count = 0;
 
@@ -303,28 +281,19 @@ namespace Plugins.Warehouser
                 //排序
                 objectCounters.Sort(SortCount);
 
-                infoBuilder.Append("Objects:\n");
+                objectsInfoBuilder.Append("Objects:\n");
 
                 //写入文本
                 foreach (Counter counter in objectCounters)
                 {
-                    infoBuilder.Append((counter.count - counter.poolCount) + "/" + counter.poolCount + "/" + counter.count + "\t" + counter.name + "\n");
+                    objectsInfoBuilder.Append((counter.count - counter.poolCount) + "/" + counter.poolCount + "/" + counter.count + "\t" + counter.name + "\n");
                 }
 
-                scrollPositions[0] = GUILayout.BeginScrollView(scrollPositions[0], GUILayout.Width(300), GUILayout.Height(100));
-                GUILayout.TextField(infoBuilder.Remove(infoBuilder.Length - 1, 1).ToString());
-                GUILayout.EndScrollView();
-
-                //Clear
-                foreach (Counter c in objectCounters)
-                {
-                    Counter.Push(c);
-                }
-                objectCounters.Clear();
+                objectsInfo = objectsInfoBuilder.Remove(objectsInfoBuilder.Length - 1, 1).ToString();
                 #endregion
 
                 #region Count Bundles
-                infoBuilder.Length = 0;
+                bundlesInfoBuilder.Length = 0;
 
                 List<Counter> bundleCounters = new List<Counter>();
 
@@ -340,7 +309,7 @@ namespace Plugins.Warehouser
                     }
                     catch { };
 
-                    Counter counter = Counter.Pull();
+                    Counter counter = new Counter();
                     counter.name = name;
                     long m;
                     if (!resultCache.TryGetValue(bundle.name, out m))
@@ -353,27 +322,59 @@ namespace Plugins.Warehouser
                 //排序
                 bundleCounters.Sort(SortMemory);
 
-                infoBuilder.Append("Asset Bundles:\n");
+                bundlesInfoBuilder.Append("Asset Bundles:\n");
 
                 //写入文本
                 foreach (Counter counter in bundleCounters)
                 {
-                    infoBuilder.Append(ConvertBytes(counter.memory) + "\t" + counter.name + "\n");
+                    bundlesInfoBuilder.Append(ConvertBytes(counter.memory) + "\t" + counter.name + "\n");
                 }
 
-                GUILayout.Space(4f);
-                scrollPositions[1] = GUILayout.BeginScrollView(scrollPositions[1], GUILayout.Width(300), GUILayout.Height(100));
-                GUILayout.TextField(infoBuilder.Remove(infoBuilder.Length - 1, 1).ToString());
+                bundlesInfo = bundlesInfoBuilder.Remove(infoBuilder.Length - 1, 1).ToString();
+                #endregion
+            }
+        }
+
+        public void OnGUI()
+        {
+            //分辨率（会影响布局）
+        //    float resX = Screen.width / designResolution.x;
+        //    float resY = Screen.height / designResolution.y;
+        //    GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(resX, resY, 1));
+
+            if (errorCount > 0)
+            {
+                GUILayout.Label("Error: " + errorCount, warningStyle);
+            }
+
+            if (memoryWarningCount > 0)
+            {
+                GUILayout.Label("Memory Warrning: " + memoryWarningCount, warningStyle);
+            }
+           
+            //显示baseInfo
+            GUILayout.TextField(infoBuilder.ToString());
+
+            if (GUILayout.Button("Detail"))
+            {
+                detailVisible = !detailVisible;
+            }
+
+            if (detailVisible)
+            {
+                regex = GUILayout.TextField(regex);
+
+                //Objects
+                scrollPositions[0] = GUILayout.BeginScrollView(scrollPositions[0], GUILayout.Width(300), GUILayout.Height(100));
+                GUILayout.TextField(objectsInfo);
                 GUILayout.EndScrollView();
 
-                //Clear
-                foreach (Counter c in bundleCounters)
-                {
-                    Counter.Push(c);
-                }
-                bundleCounters.Clear();
-                #endregion
-            
+                //Asset Bundles
+                GUILayout.Space(4f);
+                scrollPositions[1] = GUILayout.BeginScrollView(scrollPositions[1], GUILayout.Width(300), GUILayout.Height(100));
+                GUILayout.TextField(bundlesInfo);
+                GUILayout.EndScrollView();
+                
                 //Errors
                 if (errorCount > 0)
                 {
@@ -407,30 +408,12 @@ namespace Plugins.Warehouser
         /// <summary>
         /// 计数器
         /// </summary>
-        private class Counter
+        private struct Counter
         {
             public string name;
             public int count;
             public int poolCount;
             public long memory;
-
-            private static List<Counter> pool = new List<Counter>();
-            public static Counter Pull()
-            {
-                Counter instance;
-                if(pool.Count > 0)
-                {
-                    instance = pool[0];
-                    pool.RemoveAt(0);
-                    return instance;
-                }
-                instance = new Counter();
-                return instance;
-            }
-            public static void Push(Counter instance)
-            {
-                pool.Add(instance);
-            }
         }
 
 
