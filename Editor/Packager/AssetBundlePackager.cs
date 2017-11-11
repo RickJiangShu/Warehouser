@@ -60,6 +60,7 @@ namespace Plugins.Warehouser.Editor
             }
         }
 
+        //
         private static void PackDeep(AssetBundlePackage package, string extension)
         {
             foreach (string path in package.paths)
