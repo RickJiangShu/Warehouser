@@ -12,6 +12,7 @@ using UnityEngine;
 using UnityEngine.U2D;
 using Object = UnityEngine.Object;
 using Plugins.Warehouser;
+using System.Text.RegularExpressions;
 
 /// <summary>
 /// 资源管理器 
@@ -240,6 +241,28 @@ public class Warehouser
         }
     }
 
+    /// <summary>
+    /// 通过正则清理
+    /// </summary>
+    public static void ClearWithRegex(string regex)
+    {
+        foreach (string key in pool.Keys)
+        {
+            if (Regex.IsMatch(key, regex))
+            {
+                foreach (GameObject obj in pool[key])
+                {
+                    GameObject.Destroy(obj);
+                }
+                pool[key].Clear();
+                break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 清理指定名字的对象池
+    /// </summary>
     public static void Clear(string name)
     {
         if (pool.ContainsKey(name))
@@ -251,6 +274,7 @@ public class Warehouser
             pool[name].Clear();
         }
     }
+    
 
     /// <summary>
     /// 获取图集上的精灵
