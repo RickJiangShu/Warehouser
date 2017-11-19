@@ -70,6 +70,11 @@ namespace Plugins.Warehouser
         private string errorInfo = "";
 
         /// <summary>
+        /// FPS警告限制
+        /// </summary>
+        private float fpsWarningLimit = 1f / 10f;
+
+        /// <summary>
         /// 开始时间
         /// </summary>
         private float startTime = 0;
@@ -139,6 +144,11 @@ namespace Plugins.Warehouser
 
         void Update()
         {
+            if (Time.deltaTime > fpsWarningLimit)
+            {
+         //       Debug.LogError("FPS Warrning");
+            }
+
             if (Time.time > nextUpdateTime)
             {
                 fps = 1.0f / Time.deltaTime;
