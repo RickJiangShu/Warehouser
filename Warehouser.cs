@@ -164,17 +164,22 @@ public class Warehouser
     public static GameObject Instantiate(string name)
     {
         GameObject original = GetAsset<GameObject>(name);
+        return Instantiate(original);
+    }
+
+    public static GameObject Instantiate(GameObject original)
+    {
         GameObject instance = GameObject.Instantiate(original);
-        instance.name = name;//name对于Warehouser是有意义的
+        instance.name = original.name;//name对于Warehouser是有意义的
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (allObjects.ContainsKey(name))
+        if (allObjects.ContainsKey(original.name))
         {
-            allObjects[name].Add(instance);
+            allObjects[original.name].Add(instance);
         }
         else
         {
-            allObjects.Add(name, new List<GameObject>() { instance });
+            allObjects.Add(original.name, new List<GameObject>() { instance });
         }
 #endif
         return instance;
