@@ -211,20 +211,21 @@ namespace Plugins.Warehouser.Editor
             if (directory.Exists)
             {
                 List<string> userdNames = new List<string>(AssetDatabase.GetAllAssetBundleNames());
-                FileInfo[] bundleFiles = directory.GetFiles("*" + extension, SearchOption.AllDirectories);
-                foreach (FileInfo file in bundleFiles)
+                FileInfo[] files = directory.GetFiles("*", SearchOption.AllDirectories);
+                foreach (FileInfo file in files)
                 {
-                    string bundleName = WarehouserUtils.ConvertUnixPath(file.FullName, "StreamingAssets", false, true);
-                    if (!userdNames.Contains(bundleName))
+                    if (file.Extension == ".meta" || file.Extension == ".manifest")
+                        continue;
+
+                    if (file.Extension != extension || 
+                        !userdNames.Contains(WarehouserUtils.ConvertUnixPath(file.FullName, "StreamingAssets", false, true)))
                     {
-                        string bundlePath = Path.ChangeExtension(file.FullName, null);
-                       // File.Delete(bundlePath);
                         File.Delete(file.FullName);
                         File.Delete(file.FullName + ".manifest");
                         File.Delete(file.FullName + ".meta");
                         File.Delete(file.FullName + ".manifest.meta");
 
-                        global::Warehouser.Log("Clear StreamingAsset:" + bundleName);
+                        global::Warehouser.Log("Clear StreamingAsset:" + file.Name);
                     }
                 }
 
@@ -236,6 +237,7 @@ namespace Plugins.Warehouser.Editor
 
             global::Warehouser.Log("Clear Complete !");
         }
+
 
         /// <summary>
         /// 清理空的文件夹
