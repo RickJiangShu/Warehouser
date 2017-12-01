@@ -37,7 +37,7 @@ public class Warehouser
     /// <summary>
     /// 对象池中的所有对象
     /// </summary>
-    internal static Dictionary<string, List<GameObject>> pool = new Dictionary<string, List<GameObject>>();
+    internal static Dictionary<string, Queue<GameObject>> pool = new Dictionary<string, Queue<GameObject>>();
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     /// <summary>
@@ -198,8 +198,7 @@ public class Warehouser
             GameObject objOfPool = null;
             while (pool[name].Count > 0)
             {
-                objOfPool = pool[name][0];
-                pool[name].RemoveAt(0);
+                objOfPool = pool[name].Dequeue();
 
                 if (!objOfPool.Equals(null))
                 {
@@ -222,11 +221,13 @@ public class Warehouser
             if (pool[instance.name].Contains(instance))//防止重复添加
                 return;
 
-            pool[instance.name].Add(instance);
+            pool[instance.name].Enqueue(instance);
         }
         else
         {
-            pool.Add(instance.name, new List<GameObject>() { instance });
+            Queue<GameObject> newQueue = new Queue<GameObject>();
+            newQueue.Enqueue(instance);
+            pool.Add(instance.name, newQueue);
         }
         instance.SetActive(false);
     }
@@ -236,7 +237,7 @@ public class Warehouser
     /// </summary>
     public static void Clear()
     {
-        foreach (List<GameObject> objects in pool.Values)
+        foreach (Queue<GameObject> objects in pool.Values)
         {
             foreach (GameObject obj in objects)
             {
