@@ -214,7 +214,7 @@ namespace Plugins.Warehouser.Editor
                 FileInfo[] files = directory.GetFiles("*", SearchOption.AllDirectories);
                 foreach (FileInfo file in files)
                 {
-                    if (file.Extension == ".meta" || file.Extension == ".manifest")
+                    if (file.Name == "StreamingAssets" || file.Extension == ".meta" || file.Extension == ".manifest")
                         continue;
 
                     if (file.Extension != extension || 

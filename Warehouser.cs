@@ -102,7 +102,6 @@ public class Warehouser
         SpriteAtlas atlas = GetAsset<SpriteAtlas>(name);
         callback(atlas);
 
-        Debug.Log("Call:" + name);
     }
 
     /// <summary>
