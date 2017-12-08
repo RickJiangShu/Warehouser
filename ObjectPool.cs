@@ -13,29 +13,41 @@ using UnityEngine;
 /// </summary>
 sealed public class ObjectPool
 {
+    /// <summary>
+    /// 全局对象池
+    /// </summary>
     public static ObjectPool global
     {
         get;
         private set;
     }
+
+    /// <summary>
+    /// 容器
+    /// </summary>
+    private static GameObject _container;
+
     static ObjectPool()
     {
         global = new ObjectPool();
+        _container = new GameObject("ObjectPool");
+        GameObject.DontDestroyOnLoad(_container);
     }
 
     /// <summary>
-    /// 所有对象
+    /// 当前所有对象
     /// </summary>
-    private Dictionary<string, Queue<GameObject>> objects;
+    private Dictionary<string, Queue<GameObject>> _objects;
 
     public ObjectPool()
     {
-        objects = new Dictionary<string, Queue<GameObject>>();
+        _objects = new Dictionary<string, Queue<GameObject>>();
     }
 
-    ~ObjectPool()
+    public void Push(GameObject obj, bool worldPositionStays)
     {
-        Clear();
+        obj.transform.SetParent(_container.transform, worldPositionStays);
+        Push(obj);
     }
 
     /// <summary>
@@ -43,25 +55,27 @@ sealed public class ObjectPool
     /// </summary>
     public void Push(GameObject obj)
     {
-        if (objects.ContainsKey(obj.name))
+        if (_objects.ContainsKey(obj.name))
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (objects[obj.name].Contains(obj))
+            if (_objects[obj.name].Contains(obj))
             {
                 Warehouser.Log("重复添加-" + obj.name, LogType.Error);
             }
 #endif
-            objects[obj.name].Enqueue(obj);
+            _objects[obj.name].Enqueue(obj);
         }
         else
         {
             Queue<GameObject> newQueue = new Queue<GameObject>();
             newQueue.Enqueue(obj);
-            objects.Add(obj.name, newQueue);
+            _objects.Add(obj.name, newQueue);
         }
 
         obj.SetActive(false);
     }
+
+    
 
     /// <summary>
     /// 从对象池获取一个对象
@@ -69,11 +83,11 @@ sealed public class ObjectPool
     public GameObject Pull(string name)
     {
         GameObject obj;
-        if (objects.ContainsKey(name))
+        if (_objects.ContainsKey(name))
         {
-            while (objects[name].Count > 0)
+            while (_objects[name].Count > 0)
             {
-                obj = objects[name].Dequeue();
+                obj = _objects[name].Dequeue();
 
                 if (!obj.Equals(null))
                 {
@@ -90,23 +104,21 @@ sealed public class ObjectPool
     /// </summary>
     public void Clear()
     {
-        foreach (Queue<GameObject> queue in objects.Values)
+        foreach (Queue<GameObject> queue in _objects.Values)
         {
             foreach (GameObject obj in queue)
             {
                 GameObject.Destroy(obj);
             }
         }
-        objects.Clear();
+        _objects.Clear();
     }
-
     
-
     public Queue<GameObject> this[string name]
     {
         get
         {
-            return objects[name];
+            return _objects[name];
         }
     }
 }
