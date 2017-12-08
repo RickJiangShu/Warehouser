@@ -88,7 +88,7 @@ public class Warehouser
 #endif
 
         //清空对象池
-        Clear();
+        ObjectPool.global.Clear();
 
         //防止程序中使用其他创建Asset的操作，比如：new Texture()
         Resources.UnloadUnusedAssets();
@@ -110,7 +110,7 @@ public class Warehouser
     /// <returns></returns>
     public static GameObject GetObject(string name, params Type[] components)
     {
-        GameObject dynamicObject = Pull(name);
+        GameObject dynamicObject = ObjectPool.global.Pull(name);
         if (dynamicObject == null)
         {
             dynamicObject = NewObject(name, components);
@@ -146,7 +146,7 @@ public class Warehouser
     /// <returns></returns>
     public static GameObject GetInstance(string name)
     {
-        GameObject instance = Pull(name);
+        GameObject instance = ObjectPool.global.Pull(name);
         if (instance == null)
         {
             instance = Instantiate(name);
@@ -183,103 +183,6 @@ public class Warehouser
 #endif
         return instance;
     }
-
-    /// <summary>
-    /// 从对象池取
-    /// </summary>
-    /// <param name="name"></param>
-    /// <returns></returns>
-    public static GameObject Pull(string name)
-    {
-        if (pool.ContainsKey(name))
-        {
-            //考虑到对象池中的对象已被销毁的情况
-            GameObject objOfPool = null;
-            while (pool[name].Count > 0)
-            {
-                objOfPool = pool[name].Dequeue();
-
-                if (!objOfPool.Equals(null))
-                {
-                    objOfPool.SetActive(true);
-                    return objOfPool;
-                }
-            }
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// 回收实例
-    /// </summary>
-    /// <param name="instance"></param>
-    public static void Push(GameObject instance)
-    {
-        if(pool.ContainsKey(instance.name))
-        {
-            if (pool[instance.name].Contains(instance))//防止重复添加
-                return;
-
-            pool[instance.name].Enqueue(instance);
-        }
-        else
-        {
-            Queue<GameObject> newQueue = new Queue<GameObject>();
-            newQueue.Enqueue(instance);
-            pool.Add(instance.name, newQueue);
-        }
-        instance.SetActive(false);
-    }
-
-    /// <summary>
-    /// 清除掉对象池中的对象
-    /// </summary>
-    public static void Clear()
-    {
-        foreach (Queue<GameObject> objects in pool.Values)
-        {
-            foreach (GameObject obj in objects)
-            {
-                GameObject.Destroy(obj);
-            }
-            objects.Clear();
-        }
-    }
-
-    /// <summary>
-    /// 通过正则清理
-    /// </summary>
-    public static void ClearWithRegex(string regex)
-    {
-        foreach (string key in pool.Keys)
-        {
-            if (Regex.IsMatch(key, regex))
-            {
-                foreach (GameObject obj in pool[key])
-                {
-                    GameObject.Destroy(obj);
-                }
-                pool[key].Clear();
-                break;
-            }
-        }
-    }
-
-    /// <summary>
-    /// 清理指定名字的对象池
-    /// </summary>
-    public static void Clear(string name)
-    {
-        if (pool.ContainsKey(name))
-        {
-            foreach (GameObject obj in pool[name])
-            {
-                GameObject.Destroy(obj);
-            }
-            pool[name].Clear();
-        }
-    }
-    
 
     /// <summary>
     /// 获取图集上的精灵

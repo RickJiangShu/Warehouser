@@ -13,6 +13,16 @@ using UnityEngine;
 /// </summary>
 sealed public class ObjectPool
 {
+    public static ObjectPool global
+    {
+        get;
+        private set;
+    }
+    static ObjectPool()
+    {
+        global = new ObjectPool();
+    }
+
     /// <summary>
     /// 所有对象
     /// </summary>
@@ -36,7 +46,7 @@ sealed public class ObjectPool
         if (objects.ContainsKey(obj.name))
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (!objects[obj.name].Contains(obj))
+            if (objects[obj.name].Contains(obj))
             {
                 Warehouser.Log("重复添加-" + obj.name, LogType.Error);
             }
@@ -59,14 +69,17 @@ sealed public class ObjectPool
     public GameObject Pull(string name)
     {
         GameObject obj;
-        while (objects[name].Count > 0)
+        if (objects.ContainsKey(name))
         {
-            obj = objects[name].Dequeue();
-
-            if (!obj.Equals(null))
+            while (objects[name].Count > 0)
             {
-                obj.SetActive(true);
-                return obj;
+                obj = objects[name].Dequeue();
+
+                if (!obj.Equals(null))
+                {
+                    obj.SetActive(true);
+                    return obj;
+                }
             }
         }
         return null;
@@ -87,13 +100,7 @@ sealed public class ObjectPool
         objects.Clear();
     }
 
-    /// <summary>
-    /// 是否包含对象
-    /// </summary>
-    public bool Contains(string name)
-    {
-        return objects.ContainsKey(name) && objects[name].Count > 0;
-    }
+    
 
     public Queue<GameObject> this[string name]
     {

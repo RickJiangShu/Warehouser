@@ -22,6 +22,6 @@ public class DelayPusher : MonoBehaviour
 
     public void Push()
     {
-        Warehouser.Push(gameObject);
+        ObjectPool.global.Push(gameObject);
     }
 }
