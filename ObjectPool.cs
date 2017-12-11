@@ -44,6 +44,23 @@ sealed public class ObjectPool
         _objects = new Dictionary<string, Queue<GameObject>>();
     }
 
+    public void Push(GameObject obj, bool worldPositionStays, float t)
+    {
+        obj.transform.SetParent(_container.transform, worldPositionStays);
+        Push(obj, t);
+    }
+
+    /// <summary>
+    /// 延迟回收
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <param name="t"></param>
+    public void Push(GameObject obj, float t)
+    {
+        TempRecycler recycler = obj.AddComponent<TempRecycler>();
+        recycler.duration = t;
+    }
+
     public void Push(GameObject obj, bool worldPositionStays)
     {
         obj.transform.SetParent(_container.transform, worldPositionStays);

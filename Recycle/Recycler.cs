@@ -9,9 +9,9 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 延迟回收器（不支持动态挂载）
+/// 延迟回收器（不支持动态挂载，直接挂在Prefab上）
 /// </summary>
-public class DelayPusher : MonoBehaviour
+public class Recycler : MonoBehaviour
 {
     public float delay;
 
