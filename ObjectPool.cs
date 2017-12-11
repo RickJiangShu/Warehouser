@@ -121,4 +121,11 @@ sealed public class ObjectPool
             return _objects[name];
         }
     }
+
+    #if UNITY_EDITOR || DEVELOPMENT_BUILD
+    public Dictionary<string, Queue<GameObject>> objects
+    {
+        get { return _objects; }
+    }
+    #endif
 }

@@ -202,7 +202,7 @@ namespace Plugins.Warehouser
             int objectCount = 0;
             int poolCount = 0;
             Dictionary<string, List<GameObject>> all = global::Warehouser.allObjects;
-            Dictionary<string, Queue<GameObject>> pool = global::Warehouser.pool;
+            Dictionary<string, Queue<GameObject>> pool = ObjectPool.global.objects;
             foreach (string name in all.Keys)
             {
                 foreach (GameObject obj in all[name])

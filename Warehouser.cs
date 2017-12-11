@@ -34,11 +34,6 @@ public class Warehouser
     /// </summary>
     internal static Dictionary<string, AssetBundle> assetBundles = new Dictionary<string, AssetBundle>();
 
-    /// <summary>
-    /// 对象池中的所有对象
-    /// </summary>
-    internal static Dictionary<string, Queue<GameObject>> pool = new Dictionary<string, Queue<GameObject>>();
-
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     /// <summary>
     /// 所有对象（包括instance和newObject）
