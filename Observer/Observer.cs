@@ -296,7 +296,14 @@ namespace Plugins.Warehouser
                 //写入文本
                 foreach (Counter counter in objectCounters)
                 {
-                    objectsInfoBuilder.Append((counter.count - counter.poolCount) + "/" + counter.poolCount + "/" + counter.count + "\t" + counter.name + "\n");
+                    objectsInfoBuilder.Append((counter.count - counter.poolCount))
+                        .Append("/")
+                        .Append(counter.poolCount)
+                        .Append("/")
+                        .Append(counter.count)
+                        .Append("\t")
+                        .Append(counter.name)
+                        .Append("\n");
                 }
 
                 objectsInfo = objectsInfoBuilder.Remove(objectsInfoBuilder.Length - 1, 1).ToString();
@@ -337,7 +344,10 @@ namespace Plugins.Warehouser
                 //写入文本
                 foreach (Counter counter in bundleCounters)
                 {
-                    bundlesInfoBuilder.Append(ConvertBytes(counter.memory) + "\t" + counter.name + "\n");
+                    bundlesInfoBuilder.Append(ConvertBytes(counter.memory))
+                        .Append("\t")
+                        .Append(counter.name)
+                        .Append("\n");
                 }
 
                 bundlesInfo = bundlesInfoBuilder.Remove(bundlesInfoBuilder.Length - 1, 1).ToString();
@@ -363,11 +373,14 @@ namespace Plugins.Warehouser
             }
            
             //显示baseInfo
-            GUILayout.TextField(infoBuilder.ToString());
+            GUILayout.TextField(info);
 
             if (GUILayout.Button("Detail"))
             {
                 detailVisible = !detailVisible;
+
+                if (detailVisible)
+                    CalcInfo();
             }
 
             if (detailVisible)
