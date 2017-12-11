@@ -333,7 +333,8 @@ public class Warehouser
 
     public static void Log(string content, LogType type = LogType.Log)
     {
-        string output = "[Warehouser] " + content;
+
+        string output = "[Warehouser " + DateTime.Now.ToString("t") + "] " + content;
         switch (type)
         {
             case LogType.Warning:
