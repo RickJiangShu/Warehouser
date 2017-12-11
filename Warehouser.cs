@@ -36,9 +36,9 @@ public class Warehouser
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
     /// <summary>
-    /// 所有对象（包括instance和newObject）
+    /// 所有通过Prefab实例化的对象
     /// </summary>
-    internal static Dictionary<string, List<GameObject>> allObjects = new Dictionary<string, List<GameObject>>();
+    internal static Dictionary<string, List<GameObject>> instances = new Dictionary<string, List<GameObject>>();
 #endif
 
     /// <summary>
@@ -108,7 +108,7 @@ public class Warehouser
         GameObject dynamicObject = ObjectPool.global.Pull(name);
         if (dynamicObject == null)
         {
-            dynamicObject = NewObject(name, components);
+            dynamicObject = new GameObject(name, components);
         }
         return dynamicObject;
     }
@@ -117,6 +117,7 @@ public class Warehouser
     /// 新建一个GameObject
     /// </summary>
     /// <returns></returns>
+    /*
     public static GameObject NewObject(string name, params Type[] components)
     {
         GameObject dynamicObject = new GameObject(name, components);
@@ -133,6 +134,7 @@ public class Warehouser
 #endif
         return dynamicObject;
     }
+     */
 
     /// <summary>
     /// 如果对象池有便取，否则实例化一个新的Prefab
@@ -167,13 +169,13 @@ public class Warehouser
         instance.name = original.name;//name对于Warehouser是有意义的
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (allObjects.ContainsKey(original.name))
+        if (instances.ContainsKey(original.name))
         {
-            allObjects[original.name].Add(instance);
+            instances[original.name].Add(instance);
         }
         else
         {
-            allObjects.Add(original.name, new List<GameObject>() { instance });
+            instances.Add(original.name, new List<GameObject>() { instance });
         }
 #endif
         return instance;

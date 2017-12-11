@@ -199,29 +199,29 @@ namespace Plugins.Warehouser
                 .Append(" M");
 
             //Objects
-            int objectCount = 0;
+            int instanceCount = 0;
             int poolCount = 0;
-            Dictionary<string, List<GameObject>> all = global::Warehouser.allObjects;
+            Dictionary<string, List<GameObject>> instances = global::Warehouser.instances;
             Dictionary<string, Queue<GameObject>> pool = ObjectPool.global.objects;
-            foreach (string name in all.Keys)
+            foreach (string name in instances.Keys)
             {
-                foreach (GameObject obj in all[name])
+                foreach (GameObject obj in instances[name])
                 {
                     if (obj.Equals(null))
                         continue;
 
-                    objectCount++;
+                    instanceCount++;
                     if (pool.ContainsKey(name) && pool[name].Contains(obj))
                         poolCount++;
                 }
             }
 
             infoBuilder.Append("\nObjects:\t")
-                .Append((objectCount - poolCount))
+                .Append((instanceCount - poolCount))
                 .Append(" / ")
                 .Append(poolCount)
                 .Append(" / ")
-                .Append(objectCount);
+                .Append(instanceCount);
 
             //Bundles
             Dictionary<string, AssetBundle> bundles = global::Warehouser.assetBundles;
@@ -253,13 +253,13 @@ namespace Plugins.Warehouser
                 List<Counter> objectCounters = new List<Counter>();
 
                 //填入Counter
-                foreach (string name in all.Keys)
+                foreach (string name in instances.Keys)
                 {
                     Counter counter = new Counter();
                     counter.name = name;
                     counter.count = 0;
 
-                    foreach (GameObject obj in all[name])
+                    foreach (GameObject obj in instances[name])
                     {
                         //过滤已被销毁的
                         if (obj.Equals(null))
