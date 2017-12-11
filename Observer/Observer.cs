@@ -90,6 +90,11 @@ namespace Plugins.Warehouser
         private GUIStyle warningStyle;
 
         /// <summary>
+        /// 错误样式
+        /// </summary>
+        private GUIStyle errorStyle;
+
+        /// <summary>
         /// 内存计算结果缓存，防止重复计算
         /// </summary>
         private Dictionary<string, long> resultCache = new Dictionary<string, long>();
@@ -118,7 +123,12 @@ namespace Plugins.Warehouser
             warningStyle = new GUIStyle();
             warningStyle.fontStyle = FontStyle.Bold;
             warningStyle.fontSize = 16;
-            warningStyle.normal.textColor = Color.red;
+            warningStyle.normal.textColor = Color.yellow;
+
+            errorStyle = new GUIStyle();
+            errorStyle.fontStyle = FontStyle.Bold;
+            errorStyle.fontSize = 16;
+            errorStyle.normal.textColor = Color.red;
 
             if (Application.isMobilePlatform)
             {
@@ -364,7 +374,7 @@ namespace Plugins.Warehouser
 
             if (errorCount > 0)
             {
-                GUILayout.Label("Error: " + errorCount, warningStyle);
+                GUILayout.Label("Error: " + errorCount, errorStyle);
             }
 
             if (memoryWarningCount > 0)
