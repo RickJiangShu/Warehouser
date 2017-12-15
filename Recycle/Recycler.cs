@@ -17,7 +17,9 @@ public class Recycler : MonoBehaviour
 
     public void OnEnable()
     {
+        CancelInvoke();
         Invoke("Push", delay);
+        
     }
 
     public void Push()

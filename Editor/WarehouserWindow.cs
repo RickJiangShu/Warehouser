@@ -188,7 +188,7 @@ namespace Plugins.Warehouser.Editor
             BuildPipeline.BuildAssetBundles(Application.streamingAssetsPath, BuildAssetBundleOptions.None, platform);
             AssetDatabase.Refresh();
 
-            Debug.Log("AssetBunelds Build Complete !");
+            global::Warehouser.Log("AssetBunelds Build Complete !");
         }
 
     }
