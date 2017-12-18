@@ -12,67 +12,80 @@ using UnityEngine;
 /// <summary>
 /// AssetRequest
 /// </summary>
-public class AssetRequest<T> : IEnumerator<T> where T : UnityEngine.Object
+public class AssetRequest<T> : IEnumerator where T : UnityEngine.Object
 {
     private string _bundlePath;
     private string _assetName;
-    private Action<T> _completeCallback;
-    private Action<float> _progressCallback;
 
     private AssetBundleCreateRequest _loadBundleRequest;
     private AssetBundleRequest _loadAssetRequest;
+    private AssetBundle _loadedAssetBundle;
 
-    public AssetRequest(string bundlePath, string assetName, Action<float> progressCallback, Action<T> completeCallback)
-        : this(bundlePath, assetName, completeCallback)
+    public AssetRequest(AssetBundle assetBundle, string assetName)
     {
-        _progressCallback = progressCallback;
+        _loadedAssetBundle = assetBundle;
+        _assetName = assetName;
+        LoadAsset();
     }
 
-    public AssetRequest(string bundlePath, string assetName, Action<T> completeCallback)
+    public AssetRequest(string bundlePath, string assetName)
     {
         _bundlePath = bundlePath;
         _assetName = assetName;
-        _loadBundleRequest = AssetBundle.LoadFromFileAsync(Application.streamingAssetsPath + "/" + _bundlePath);
-        _completeCallback = completeCallback;
+        LoadAssetBundle();
     }
 
-    public bool MoveNext()
+    private void LoadAssetBundle()
     {
-        if (!_loadBundleRequest.isDone)
+        _loadBundleRequest = AssetBundle.LoadFromFileAsync(Application.streamingAssetsPath + "/" + _bundlePath);
+    }
+    private void LoadAsset()
+    {
+        _loadAssetRequest = _loadedAssetBundle.LoadAssetAsync(_assetName);
+    }
+
+    public virtual bool MoveNext()
+    {
+        if (_loadedAssetBundle == null)
         {
-            if (_progressCallback != null)
-                _progressCallback(_loadBundleRequest.progress / 2f);
+            if (_loadBundleRequest.isDone)
+            {
+                _loadedAssetBundle = _loadBundleRequest.assetBundle;//引用加载的Bundle
+                Warehouser.assetBundles.Add(_bundlePath, _loadedAssetBundle);
+                LoadAsset();
+            }
             return true;
         }
         else
         {
-            if (_loadAssetRequest == null)
-            {
-                _loadAssetRequest = _loadBundleRequest.assetBundle.LoadAssetAsync(_assetName);
-                Warehouser.assetBundles.Add(_bundlePath, _loadBundleRequest.assetBundle);
-            }
+            return !_loadAssetRequest.isDone;
+        }
+    }
 
-            if (!_loadAssetRequest.isDone)
+    public float progress
+    {
+        get {
+            if (_loadedAssetBundle == null)
             {
-                if (_progressCallback != null)
-                    _progressCallback((1f + _loadAssetRequest.progress) / 2f);
-                return true;
+                return _loadBundleRequest.progress / 2f;
             }
             else
             {
-                _completeCallback((T)_loadAssetRequest.asset);
-                return false;
+                return (1f + _loadAssetRequest.progress) / 2f;
             }
+        }
+    }
+
+    public T asset
+    {
+        get {
+            return (T)_loadAssetRequest.asset;
         }
     }
 
     public object Current
     {
         get { return null; }
-    }
-    T IEnumerator<T>.Current
-    {
-        get { throw new NotSupportedException(); }
     }
     public void Reset()
     {

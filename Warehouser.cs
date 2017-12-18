@@ -199,11 +199,13 @@ public class Warehouser
         return atlas.GetSprite(name);
     }
 
-    public static IEnumerator GetAssetAsync<T>(string name, Action<T> completeCallback) where T : Object
-    {
-        return GetAssetAsync<T>(name, null, completeCallback);
-    }
-    public static IEnumerator GetAssetAsync<T>(string name, Action<float> progressCallback, Action<T> completeCallback) where T : Object
+    /// <summary>
+    /// 异步获取Asset
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static AssetRequest<T> GetAssetAsync<T>(string name) where T : Object
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
         if (!paths.ContainsKey(name))
@@ -211,8 +213,18 @@ public class Warehouser
             Debug.LogError("找不到映射的路径：" + name);
         }
 #endif
+        AssetRequest<T> request;
         string path = paths[name];
-        return new AssetRequest<T>(path, name, progressCallback, completeCallback);
+        AssetBundle bundle;
+        if (assetBundles.TryGetValue(path, out bundle))
+        {
+            request = new AssetRequest<T>(bundle, name);
+        }
+        else
+        {
+            request = new AssetRequest<T>(path, name);
+        }
+        return request;
     }
 
     /// <summary>
