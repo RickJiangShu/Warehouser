@@ -137,6 +137,34 @@ public class Warehouser
      */
 
     /// <summary>
+    /// 异步实例化
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static InstanceRequest GetInstanceAsync(string name)
+    {
+        InstanceRequest request;
+        GameObject instance = ObjectPool.global.Pull(name);
+        if (instance == null)
+        {
+            string path = paths[name];
+            AssetBundle bundle;
+            if (assetBundles.TryGetValue(path, out bundle))
+            {
+                request = new InstanceRequest(bundle, name);
+            }
+            else
+            {
+                request = new InstanceRequest(path, name);
+            }
+        }
+        else
+            request = new InstanceRequest(instance);
+
+        return request;
+    }
+
+    /// <summary>
     /// 如果对象池有便取，否则实例化一个新的Prefab
     /// </summary>
     /// <param name="name"></param>

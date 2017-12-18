@@ -35,6 +35,10 @@ public class AssetRequest<T> : IEnumerator where T : UnityEngine.Object
         LoadAssetBundle();
     }
 
+    public AssetRequest()
+    {
+    }
+
     private void LoadAssetBundle()
     {
         _loadBundleRequest = AssetBundle.LoadFromFileAsync(Application.streamingAssetsPath + "/" + _bundlePath);
@@ -62,7 +66,7 @@ public class AssetRequest<T> : IEnumerator where T : UnityEngine.Object
         }
     }
 
-    public float progress
+    public virtual float progress
     {
         get {
             if (_loadedAssetBundle == null)
