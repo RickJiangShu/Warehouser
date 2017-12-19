@@ -16,13 +16,16 @@ public class InstanceRequest : AssetRequest<GameObject>
 {
     private GameObject _instance;
 
+
+    public InstanceRequest(string[] dependencies, string bundleName, string assetName) : base(dependencies, bundleName, assetName) { }
+    public InstanceRequest(AssetBundle bundle, string assetName) : base(bundle, assetName) { }
+    public InstanceRequest(string bundleName, string assetName) : base(bundleName, assetName) { }
+    
+
     public InstanceRequest(GameObject obj)
     {
         this._instance = obj;
     }
-
-    public InstanceRequest(AssetBundle bundle, string assetName) : base(bundle, assetName) { }
-    public InstanceRequest(string bundlePath, string assetName) : base(bundlePath, assetName) { }
 
     public override bool MoveNext()
     {

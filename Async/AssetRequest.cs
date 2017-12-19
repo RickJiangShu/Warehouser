@@ -14,69 +14,111 @@ using UnityEngine;
 /// </summary>
 public class AssetRequest<T> : IEnumerator where T : UnityEngine.Object
 {
-    private string _bundlePath;
+    public event Action<AssetBundle> onLoadBundleCompleted;
+
+    private Phase _phase = Phase.None;
+
+    private int _loadedDependencies = 0;
+    private string[] _dependencies;//依赖包
+    
+    private string _bundleName;
     private string _assetName;
 
+    //Bundle
     private AssetBundleCreateRequest _loadBundleRequest;
-    private AssetBundleRequest _loadAssetRequest;
-    private AssetBundle _loadedAssetBundle;
+    private AssetBundle _mainBundle;
 
-    public AssetRequest(AssetBundle assetBundle, string assetName)
+    //Asset
+    private AssetBundleRequest _loadAssetRequest;
+
+    public AssetRequest(string[] dependencies, string bundleName, string assetName)
     {
-        _loadedAssetBundle = assetBundle;
+        _dependencies = dependencies;
+        _bundleName = bundleName;
         _assetName = assetName;
-        LoadAsset();
+        LoadDependencies();
     }
 
-    public AssetRequest(string bundlePath, string assetName)
+    public AssetRequest(string bundleName, string assetName)
     {
-        _bundlePath = bundlePath;
+        _bundleName = bundleName;
         _assetName = assetName;
-        LoadAssetBundle();
+        LoadMainBundle();
+    }
+
+    public AssetRequest(AssetBundle bundle, string assetName)
+    {
+        _mainBundle = bundle;
+        _assetName = assetName;
+        LoadAsset();
     }
 
     public AssetRequest()
     {
     }
 
-    private void LoadAssetBundle()
+    private void LoadDependencies()
     {
-        _loadBundleRequest = AssetBundle.LoadFromFileAsync(Application.streamingAssetsPath + "/" + _bundlePath);
+        _phase = Phase.LoadDependencies;
+        _loadBundleRequest = AssetBundle.LoadFromFileAsync(Application.streamingAssetsPath + "/" + _dependencies[_loadedDependencies]);
     }
+
+    private void LoadMainBundle()
+    {
+        _phase = Phase.LoadMainBundle;
+        _loadBundleRequest = AssetBundle.LoadFromFileAsync(Application.streamingAssetsPath + "/" + _bundleName);
+    }
+
     private void LoadAsset()
     {
-        _loadAssetRequest = _loadedAssetBundle.LoadAssetAsync(_assetName);
+        _phase = Phase.LoadAsset;
+        _loadAssetRequest = _mainBundle.LoadAssetAsync(_assetName);
     }
 
     public virtual bool MoveNext()
     {
-        if (_loadedAssetBundle == null)
+        switch (_phase)
         {
-            if (_loadBundleRequest.isDone)
-            {
-                _loadedAssetBundle = _loadBundleRequest.assetBundle;//引用加载的Bundle
-                Warehouser.assetBundles.Add(_bundlePath, _loadedAssetBundle);
-                LoadAsset();
-            }
-            return true;
+            case Phase.LoadDependencies:
+                if (_loadBundleRequest.isDone)
+                {
+                    onLoadBundleCompleted(_loadBundleRequest.assetBundle);
+                    if (++_loadedDependencies == _dependencies.Length)
+                    {
+                        LoadMainBundle();
+                    }
+                    else
+                    {
+                        LoadDependencies();
+                    }
+                }
+                return true;
+            case Phase.LoadMainBundle:
+                if (_loadBundleRequest.isDone)
+                {
+                    onLoadBundleCompleted(_loadBundleRequest.assetBundle);
+                    _mainBundle = _loadBundleRequest.assetBundle;
+                    LoadAsset();
+                }
+                return true;
+            case Phase.LoadAsset:
+                return !_loadAssetRequest.isDone;
         }
-        else
-        {
-            return !_loadAssetRequest.isDone;
-        }
+        return false;
     }
 
     public virtual float progress
     {
         get {
-            if (_loadedAssetBundle == null)
+            switch (_phase)
             {
-                return _loadBundleRequest.progress / 2f;
+                case Phase.LoadDependencies:
+                case Phase.LoadMainBundle:
+                    return (_loadedDependencies + _loadBundleRequest.progress + 1) / (2 + _dependencies.Length);
+                case Phase.LoadAsset:
+                    return (_dependencies.Length + _loadAssetRequest.progress) / (2 + _dependencies.Length);
             }
-            else
-            {
-                return (1f + _loadAssetRequest.progress) / 2f;
-            }
+            return 1f;
         }
     }
 
@@ -98,5 +140,13 @@ public class AssetRequest<T> : IEnumerator where T : UnityEngine.Object
     public void Dispose()
     {
         throw new NotSupportedException();
+    }
+
+    private enum Phase
+    {
+        None,
+        LoadDependencies,
+        LoadMainBundle,
+        LoadAsset
     }
 }

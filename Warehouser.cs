@@ -27,7 +27,7 @@ public class Warehouser
     /// <summary>
     /// 路径映射
     /// </summary>
-    private static Dictionary<string, string> paths = new Dictionary<string, string>();
+    private static Dictionary<string, string> bundleNames = new Dictionary<string, string>();
 
     /// <summary>
     /// 所有加载的Bundles
@@ -56,7 +56,7 @@ public class Warehouser
         for (int i = 0, l = pairs.Length; i < l; i++)
         {
             Pair pair = pairs[i];
-            paths.Add(pair.name, pair.path);
+            bundleNames.Add(pair.name, pair.path);
         }
         Resources.UnloadAsset(pairs);
 
@@ -147,16 +147,7 @@ public class Warehouser
         GameObject instance = ObjectPool.global.Pull(name);
         if (instance == null)
         {
-            string path = paths[name];
-            AssetBundle bundle;
-            if (assetBundles.TryGetValue(path, out bundle))
-            {
-                request = new InstanceRequest(bundle, name);
-            }
-            else
-            {
-                request = new InstanceRequest(path, name);
-            }
+            request = InstantiateAsync(name);
         }
         else
             request = new InstanceRequest(instance);
@@ -177,6 +168,37 @@ public class Warehouser
             instance = Instantiate(name);
         }
         return instance;
+    }
+
+    /// <summary>
+    /// 异步实例化
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    public static InstanceRequest InstantiateAsync(string name)
+    {
+        InstanceRequest request;
+        string bundleName = bundleNames[name];
+        AssetBundle bundle;
+        if (Warehouser.assetBundles.TryGetValue(bundleName, out bundle))
+        {
+            request = new InstanceRequest(bundle, name);
+        }
+        else
+        {
+            string[] dependencies = manifest.GetAllDependencies(bundleName);
+            if (dependencies.Length == 0)
+            {
+                request = new InstanceRequest(bundleName, name);
+                request.onLoadBundleCompleted += CacheAssetBundle;
+            }
+            else
+            {
+                request = new InstanceRequest(dependencies, bundleName, name);
+                request.onLoadBundleCompleted += CacheAssetBundle;
+            }
+        }
+        return request;
     }
 
     /// <summary>
@@ -217,12 +239,12 @@ public class Warehouser
     public static Sprite GetSprite(string name)
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (!paths.ContainsKey(name))
+        if (!bundleNames.ContainsKey(name))
         {
             Debug.LogError("找不到引用的图集：" + name);
         }
 #endif
-        string atlasName = paths[name];
+        string atlasName = bundleNames[name];
         SpriteAtlas atlas = GetAsset<SpriteAtlas>(atlasName);
         return atlas.GetSprite(name);
     }
@@ -236,24 +258,35 @@ public class Warehouser
     public static AssetRequest<T> GetAssetAsync<T>(string name) where T : Object
     {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (!paths.ContainsKey(name))
+        if (!bundleNames.ContainsKey(name))
         {
             Debug.LogError("找不到映射的路径：" + name);
         }
 #endif
-        AssetRequest<T> request;
-        string path = paths[name];
+        string bundleName = bundleNames[name];
         AssetBundle bundle;
-        if (assetBundles.TryGetValue(path, out bundle))
+        AssetRequest<T> request;
+        if (Warehouser.assetBundles.TryGetValue(bundleName, out bundle))
         {
             request = new AssetRequest<T>(bundle, name);
         }
         else
         {
-            request = new AssetRequest<T>(path, name);
+            string[] dependencies = manifest.GetAllDependencies(name);
+            if (dependencies.Length == 0)
+            {
+                request = new AssetRequest<T>(bundleName, name);
+                request.onLoadBundleCompleted += CacheAssetBundle;
+            }
+            else
+            {
+                request = new AssetRequest<T>(dependencies, bundleName, name);
+                request.onLoadBundleCompleted += CacheAssetBundle;
+            }
         }
         return request;
     }
+
 
     /// <summary>
     /// 获取Asset
@@ -266,14 +299,14 @@ public class Warehouser
         Object asset;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-        if (!paths.ContainsKey(name))
+        if (!bundleNames.ContainsKey(name))
         {
             Debug.LogError("找不到映射的路径：" + name);
         }
 #endif
 
         //获取路径
-        string path = paths[name];
+        string path = bundleNames[name];
 
         //AssetBundle 加载
         AssetBundle bundle;
@@ -350,8 +383,16 @@ public class Warehouser
     private static AssetBundle LoadAndCacheAssetBundle(string assetBundleName)
     {
         AssetBundle bundle = AssetBundle.LoadFromFile(Application.streamingAssetsPath + "/" + assetBundleName);
-        assetBundles.Add(assetBundleName, bundle);
+        CacheAssetBundle(bundle);
         return bundle;
+    }
+
+    /// <summary>
+    /// 缓存AssetBundle
+    /// </summary>
+    private static void CacheAssetBundle(AssetBundle bundle)
+    {
+        assetBundles.Add(bundle.name, bundle);
     }
 
     /// <summary>
@@ -372,7 +413,6 @@ public class Warehouser
 
     public static void Log(string content, LogType type = LogType.Log)
     {
-
         string output = "[Warehouser " + DateTime.Now.ToString("t") + "] " + content;
         switch (type)
         {
