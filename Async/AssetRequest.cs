@@ -114,9 +114,9 @@ public class AssetRequest<T> : IEnumerator where T : UnityEngine.Object
             {
                 case Phase.LoadDependencies:
                 case Phase.LoadMainBundle:
-                    return (_loadedDependencies + _loadBundleRequest.progress + 1) / (2 + _dependencies.Length);
+                    return (_loadedDependencies + _loadBundleRequest.progress) / (2 + _loadedDependencies);
                 case Phase.LoadAsset:
-                    return (_dependencies.Length + _loadAssetRequest.progress) / (2 + _dependencies.Length);
+                    return (_loadedDependencies + 1 + _loadAssetRequest.progress) / (2 + _loadedDependencies);
             }
             return 1f;
         }
