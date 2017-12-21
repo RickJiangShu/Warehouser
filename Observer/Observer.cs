@@ -75,6 +75,11 @@ namespace Plugins.Warehouser
         private float fpsWarningLimit = 1f / 10f;
 
         /// <summary>
+        /// FPS警告次数
+        /// </summary>
+        public int fpsWarningCount = 0;
+
+        /// <summary>
         /// 开始时间
         /// </summary>
         private float startTime = 0;
@@ -127,7 +132,7 @@ namespace Plugins.Warehouser
 
             errorStyle = new GUIStyle();
             errorStyle.fontStyle = FontStyle.Bold;
-            errorStyle.fontSize = 16;
+            errorStyle.fontSize = 18;
             errorStyle.normal.textColor = Color.red;
 
             if (Application.isMobilePlatform)
@@ -156,6 +161,7 @@ namespace Plugins.Warehouser
         {
             if (Time.deltaTime > fpsWarningLimit)
             {
+                fpsWarningCount++;
             //    Debug.LogError("FPS Warrning");
             }
 
@@ -375,6 +381,11 @@ namespace Plugins.Warehouser
             if (errorCount > 0)
             {
                 GUILayout.Label("Error: " + errorCount, errorStyle);
+            }
+
+            if (fpsWarningCount > 0)
+            {
+                GUILayout.Label("FPS Warrning: " + fpsWarningCount, warningStyle);
             }
 
             if (memoryWarningCount > 0)
